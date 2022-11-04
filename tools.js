@@ -57,13 +57,10 @@ class Connector{
 
     this.maxOffset = 2 * size
 
-    this.centerNode = parent.n[1]
-
     //executions per period
     this.velocity = this.maxOffset / period
 
     this.offset = 0
-
     this.extended = 0
 
     this.col = "#FF0000"
@@ -169,10 +166,6 @@ class Nanobot{
     this.x = x
     this.y = y
 
-    this.distOffset = 0
-
-    this.offsetAll = 0
-
     this.size = size
 
     this.n = []
@@ -184,9 +177,6 @@ class Nanobot{
     this.order = [
       [0, 0], [1, 0], [1, 1], [0, 1]
     ]
-
-    this.link1 = this.c[0]
-    this.link2 = this.c[1]
   }
 
   createStructure(){
@@ -222,20 +212,6 @@ class Nanobot{
     this.c[1].extended = new2
   }
 
-  getDistOffset(){
-    let lft = this.n[1].x - this.n[0].x
-    let rgt = this.n[2].x - this.n[1].x
-
-    return (lft - rgt) / this.size
-
-  }
-
-  centerNodeOffset(){
-    let leftWgt = this.n[1].x - this.n[0].x
-    let rightWgt = this.n[2].x - this.n[1].x
-
-    return (leftWgt - rightWgt)/this.size
-  }
 
   draw(){
     for(let i=0; i<this.c.length; i++){
@@ -249,16 +225,8 @@ class Nanobot{
   }
 
   update(){
-    this.distOffset = this.getDistOffset()
-
     for(let i=0; i<this.c.length; i++){
       this.c[i].update()
     }
-
-    for(let i=0; i<this.n.length; i++){
-      //this.n[i].x += this.centerNodeOffset()
-
-    }
-
   }
 }
