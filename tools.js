@@ -48,7 +48,7 @@ class Scene{
     this.w = canvas.width
     this.h = canvas.height
 
-    this.col = "DDDDDD"
+    this.col = "990000"
   }
 
   draw(){
@@ -76,7 +76,7 @@ class Node{
     this.lft = null
     this.rgt = null
 
-    this.col = "#0000FF"
+    this.col = "#888888"
   }
 
   draw(){
@@ -111,7 +111,7 @@ class Connector{
     this.offset = 0
     this.extended = 0
 
-    this.col = "#FF0000"
+    this.col = "#CCCCCC"
   }
 
   distOffset(){
@@ -196,7 +196,7 @@ class Connector{
     ctx.beginPath()
 
     ctx.lineWidth = this.size * 1.2
-    ctx.strokeStyle = "#440000"
+    ctx.strokeStyle = "#AAAAAA"
 
     let center = this.parent.n[1]
 
@@ -303,7 +303,7 @@ class Nanobot{
   update(){
     if(ctr[" "]){
       for(let i=0; i<this.n.length; i++){
-        this.n[i].x += 0.1 * this.size
+        this.n[i].x += 0.05 * this.size
       }
     }
 
@@ -320,12 +320,14 @@ class Cell{
     this.x = x
     this.y = y
 
-    this.size = size/2
+    this.size = size*0.5 + Math.random() * size * 0.2
 
     this.dir = {
       x:0,
       y:0
     }
+
+    this.colliding = false
 
     this.velocity = 0
 
@@ -333,7 +335,7 @@ class Cell{
   }
 
   bounce(obj){
-    this.velocity = obj.velocity
+    this.velocity = obj.velocity * 0.8
     this.dir = getDirection(obj, this)
 
     this.x += this.dir.x * this.velocity
@@ -344,7 +346,7 @@ class Cell{
     this.x += this.dir.x * this.velocity
     this.y += this.dir.y * this.velocity
 
-    this.velocity -= 0.1
+    this.velocity*=0.9999
 
     if(this.velocity <= 0){
       this.velocity = 0
@@ -358,6 +360,7 @@ class Cell{
       this.move()
     }
 
+    this.colliding = false
     for(let i=0; i<3; i++){
       if(checkCollision(nano.n[i], this)){
         this.bounce(nano.n[i])
@@ -384,7 +387,7 @@ class Cell{
 
     ctx.fillStyle = this.col
 
-    ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
+    ctx.arc(this.x, this.y, this.size * 1.5, 0, 2 * Math.PI);
     ctx.closePath()
 
     ctx.fill()
@@ -398,7 +401,7 @@ class Clot{
     this.x = x
     this.y = y
 
-    this.size = size
+    this.size = size/2
 
     this.cells = []
 
@@ -406,11 +409,11 @@ class Clot{
   }
 
   makeClot(){
-    for(let i=0; i<10; i++){
-      for(let j=0; j<30; j++){
+    for(let i=0; i<20; i++){
+      for(let j=0; j<60; j++){
         this.cells.push(new Cell(
-          this.x - (i - 5) * this.size,
-          this.y - (j - 15) * this.size,
+          this.x - (i - 10) * this.size + 6*(Math.random() - 0.5),
+          this.y - (j - 30) * this.size + 6*(Math.random() - 0.5),
           this.size
         ))
       }
