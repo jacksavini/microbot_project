@@ -16,10 +16,7 @@ const scr_ratio = 0.5
 
 var fps = 60
 
-const period = fps/10
-
-var time = 0
-var turn = 0
+const period = fps/3
 
 const gameSize = 40
 
@@ -112,17 +109,11 @@ function animate(){
 
   background.draw()
 
-  if(time % period == 0){
-    nano.nextTurn()
-  }
-
   nano.update()
   nano.draw()
 
   clot.update()
   clot.draw()
-
-  time++
 
 }
 

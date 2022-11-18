@@ -40,6 +40,20 @@ function compareDists(a,b) {
   return 0;
 }
 
+// Taken from this link:
+// https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+
+/* Randomize array in-place using Durstenfeld shuffle algorithm */
+function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+}
+
+
 class Scene{
   constructor(){
     this.x = 0
@@ -59,7 +73,7 @@ class Scene{
   }
 }
 
-
+//A Node is a singular circular section of the nanobot.
 class Node{
   constructor(x, y, size, parent){
     this.x = x
@@ -92,9 +106,14 @@ class Node{
     ctx.fill()
 
   }
+
+  update(){
+    this.velocity = Math.abs(this.x - this.oldX, 0)
+    this.oldX = this.x
+  }
 }
 
-
+//A Connector is a link between the nodes.
 class Connector{
   constructor(size, parent, key){
     this.size = size
@@ -109,77 +128,12 @@ class Connector{
     this.velocity = this.maxOffset / period
 
     this.offset = 0
-    this.extended = 0
+    this.extend = false
+
+    this.growing = false
+    this.shrinking = false
 
     this.col = "#CCCCCC"
-  }
-
-  distOffset(){
-    let c1 = (this.otherC.rgt.x - this.otherC.lft.x)
-    let c2 = (this.rgt.x - this.lft.x)
-    return (c1 - c2) / (this.size * 4)
-  }
-
-  moveLeftNodes(offset){
-
-    let d = this.distOffset()
-
-    let lft = this
-
-    while(lft != null){
-
-      lft = lft.lft
-      lft.x += offset + d
-      lft = lft.lft
-    }
-
-  }
-
-  moveRightNodes(offset){
-
-    let d = this.distOffset()
-
-    let rgt = this
-
-    while(rgt != null){
-
-      rgt = rgt.rgt
-      rgt.x += offset + d
-      rgt = rgt.rgt
-    }
-
-  }
-
-  extend(){
-    if(this.offset >= this.maxOffset){
-      return
-    }
-
-    this.offset += this.velocity
-
-    let lftMove = (-1 * this.rgtW / this.totW) * this.velocity
-    let rgtMove = (this.lftW / this.totW) * this.velocity
-
-    //these while loops run through all the nodes to the left and right of each
-    //connector, and changes their positions.
-    this.moveLeftNodes(lftMove)
-    this.moveRightNodes(rgtMove)
-  }
-
-  retract(){
-    if(this.offset < 0){
-      return
-    }
-
-    this.offset -= this.velocity
-
-    let lftMove = (this.rgtW / this.totW) * this.velocity
-    let rgtMove = (-1 * this.lftW / this.totW) * this.velocity
-
-    //these while loops run through all the nodes to the left and right of each
-    //connector, and changes their positions.
-    this.moveLeftNodes(lftMove)
-    this.moveRightNodes(rgtMove)
   }
 
   draw(){
@@ -193,29 +147,31 @@ class Connector{
 
     ctx.stroke()
 
-    ctx.beginPath()
 
-    ctx.lineWidth = this.size * 1.2
-    ctx.strokeStyle = "#AAAAAA"
-
-    let center = this.parent.n[1]
-
-    ctx.moveTo(
-      center.x - 3 * this.size,
-      center.y
-    )
-
-    ctx.lineTo(
-      center.x + 3 * this.size,
-      center.y
-    )
-
-    ctx.stroke()
   }
 
   update(){
-    if(this.extended) this.extend()
-    else this.retract()
+    if(this.extend){
+      this.offset+=this.velocity
+      this.growing = true
+      this.shrinking = false
+    }
+
+    else{
+      this.offset-=this.velocity
+      this.shrinking = true
+      this.growing = false
+    }
+
+    if(this.offset > this.maxOffset){
+      this.offset = this.maxOffset
+      this.growing = false
+    }
+
+    if(this.offset < 0){
+      this.offset = 0
+      this.shrinking = false
+    }
   }
 }
 
@@ -264,29 +220,19 @@ class Nanobot{
     }
   }
 
-  nextTurn(){
-    this.turn++
-    this.turn = this.turn % 4
+  moveNodes(){
+    let v = 0
 
-    let new1 = this.order[this.turn][0]
-    let new2 = this.order[this.turn][1]
+    let t1 = this.c[0].offset / this.c[0].maxOffset
+    let t2 = this.c[1].offset / this.c[1].maxOffset
 
-    this.c[0].extended = new1
-    this.c[1].extended = new2
-  }
-
-  distanceOffset(){
-    let moving
-    let still
-
-    let center = this.n[2].x - this.n[0].x
-    let o2 = this.n[2].x - this.n[1].x
-
-    this.d += (o1 - o2) * 10 /this.size
-
-    for(let i=0; i<this.n.length; i++){
-      this.n[i].x += 100 * (o1 - o2)/this.size
+    for(let i=0; i<3; i++){
+      this.n[i].x += (this.size/24) * (this.c[0].growing - this.c[0].shrinking) * (1 + (1 - t2))
+      this.n[i].x -= (this.size/24) * (this.c[1].growing - this.c[1].shrinking) * (1 + (1 - t1))
     }
+
+    this.n[0].x = (this.n[1].x - 4 * this.size - this.c[0].offset)
+    this.n[2].x = (this.n[1].x + 4 * this.size + this.c[1].offset)
   }
 
   draw(){
@@ -294,49 +240,96 @@ class Nanobot{
       this.c[i].draw()
     }
 
+    ctx.beginPath()
+
+    ctx.moveTo(this.n[1].x - 3 * this.size, this.y)
+    ctx.lineTo(this.n[1].x + 3 * this.size, this.y)
+
+    ctx.lineWidth *= 1.2
+    ctx.strokeStyle = "#AAAAAA"
+
+    ctx.stroke()
+
     for(let i=0; i<this.n.length; i++){
       this.n[i].draw()
     }
-
   }
 
   update(){
-    if(ctr[" "]){
-      for(let i=0; i<this.n.length; i++){
-        this.n[i].x += 0.05 * this.size
-      }
+    if(ctr["1"]){
+      this.c[0].extend = true
+    }
+    else{
+      this.c[0].extend = false
     }
 
-    // this.distanceOffset()
+    if(ctr["2"]){
+      this.c[1].extend = true
+    }
+    else{
+      this.c[1].extend = false
+    }
+
     for(let i=0; i<this.c.length; i++){
       this.c[i].update()
     }
+
+    this.moveNodes()
+
+    for(let i=0; i<this.c.length; i++){
+      this.c[i].update()
+    }
+
+    this.n[0].update()
+    this.n[1].update()
+    this.n[2].update()
   }
 }
 
 
 class Cell{
   constructor(x, y, size){
+    // this.x = x + Math.random() * size
+    // this.y = y + Math.random() * size
+
     this.x = x
     this.y = y
-
-    this.size = size*0.5 + Math.random() * size * 0.2
+    this.size = size
 
     this.dir = {
       x:0,
       y:0
     }
 
-    this.colliding = false
+    this.drawsize = 1
 
     this.velocity = 0
 
     this.col = "#FF0000"
+
+    // let rNum1 = Math.floor(Math.random() * 16)
+    // let rNum2 = Math.floor(Math.random() * 16)
+    //
+    // this.col = "#" + rNum1.toString(16) + rNum1.toString(16) + "0000"
   }
 
   bounce(obj){
-    this.velocity = obj.velocity * 0.8
+    // Different bounce physics
+    // let c = obj.velocity + this.velocity
+    // this.velocity = (c/2)
+    // obj.velocity = (c/2)
+
+    this.velocity = obj.velocity * 0.9
+
     this.dir = getDirection(obj, this)
+
+    if(obj == nano.n[2] || obj == nano.n[1] || obj == nano.n[0]){
+      while(checkCollision(obj, this)){
+        this.x += this.dir.x * 2
+        this.y += this.dir.y * 2
+      }
+      this.dir = getDirection(obj, this)
+    }
 
     this.x += this.dir.x * this.velocity
     this.y += this.dir.y * this.velocity
@@ -360,34 +353,32 @@ class Cell{
       this.move()
     }
 
-    this.colliding = false
     for(let i=0; i<3; i++){
       if(checkCollision(nano.n[i], this)){
         this.bounce(nano.n[i])
       }
     }
 
-
-    let cellPick
-
     for(let i=0; i<clot.cells.length; i++){
 
       if(clot.cells[i] == this) continue
 
-      if( checkCollision(clot.cells[i], this) ){
+      let check = checkCollision(clot.cells[i], this)
+
+      if( check ){
         clot.cells[i].bounce(this)
       }
     }
+
   }
 
   draw(){
     //draws & fills in a circle at the nodes location
 
     ctx.beginPath()
-
     ctx.fillStyle = this.col
 
-    ctx.arc(this.x, this.y, this.size * 1.5, 0, 2 * Math.PI);
+    ctx.arc(this.x, this.y, this.size * this.drawsize, 0, 2 * Math.PI);
     ctx.closePath()
 
     ctx.fill()
@@ -401,6 +392,8 @@ class Clot{
     this.x = x
     this.y = y
 
+    this.broke = false
+
     this.size = size/2
 
     this.cells = []
@@ -409,11 +402,12 @@ class Clot{
   }
 
   makeClot(){
-    for(let i=0; i<20; i++){
-      for(let j=0; j<60; j++){
+    for(let j=0; j<60; j++){
+      //let start = Math.floor(2*Math.sin(Math.PI/2.001 * (30 - Math.abs(j-30) )/30)*this.size/1.2)-10
+      for(let i=0; i<10; i++){               // for(let i=start; i<20 - start; i++){
         this.cells.push(new Cell(
-          this.x - (i - 10) * this.size + 6*(Math.random() - 0.5),
-          this.y - (j - 30) * this.size + 6*(Math.random() - 0.5),
+          this.x - (i - 10) * this.size * 2, // this.x - (i - (10 - start/10)) * this.size * 2,
+          this.y - (j - 30) * this.size * 2,
           this.size
         ))
       }
@@ -427,7 +421,10 @@ class Clot{
   }
 
   update(){
-    this.cells.sort(compareDists);
+    shuffleArray(this.cells)
+    // this.cells.sort(compareDists);
+
+    if(ctr["T"]) this.broken = true;
 
     for(let i=0; i<this.cells.length; i++){
       this.cells[i].update()
