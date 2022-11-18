@@ -62,7 +62,7 @@ class Scene{
     this.w = canvas.width
     this.h = canvas.height
 
-    this.col = "000000"
+    this.col = "#000000"
   }
 
   draw(){
