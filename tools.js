@@ -62,7 +62,7 @@ class Scene{
     this.w = canvas.width
     this.h = canvas.height
 
-    this.col = "990000"
+    this.col = "000000"
   }
 
   draw(){
@@ -319,7 +319,7 @@ class Cell{
     // this.velocity = (c/2)
     // obj.velocity = (c/2)
 
-    this.velocity = obj.velocity * 0.9
+    this.velocity = obj.velocity * 0.8
 
     this.dir = getDirection(obj, this)
 
@@ -394,7 +394,7 @@ class Clot{
 
     this.broke = false
 
-    this.size = size/2
+    this.size = size/4
 
     this.cells = []
 
