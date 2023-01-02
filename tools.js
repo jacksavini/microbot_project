@@ -40,6 +40,111 @@ function compareDists(a,b) {
   return 0;
 }
 
+function getControlScheme(){
+  if(box[0].checked != box[0].oldChecked){
+    box[0].checked = true
+    box[1].checked = false
+    box[2].checked = false
+    tutorial.textContent= "Press 1 to control the left arm, 2 to control the right arm";
+  }
+
+  else if(box[1].checked != box[1].oldChecked){
+    box[1].checked = true
+    box[0].checked = false
+    box[2].checked = false
+    tutorial.textContent= "Press 1 and 2 to control the left arm, 9 and 0 to control the right arm";
+  }
+
+  else if(box[2].checked != box[2].oldChecked){
+    box[2].checked = true
+    box[1].checked = false
+    box[0].checked = false
+    tutorial.textContent= "Press 1 and 2 to control the left arm, 9 and 0 to control the right arm";
+  }
+
+  box[0].oldChecked = box[0].checked
+  box[1].oldChecked = box[1].checked
+  box[2].oldChecked = box[2].checked
+}
+
+function getCellPhysics(){
+  if(box[3].checked != box[3].oldChecked){
+    box[3].checked = true
+    box[4].checked = false
+  }
+
+  else if(box[4].checked != box[4].oldChecked){
+    box[4].checked = true
+    box[3].checked = false
+  }
+
+  box[3].oldChecked = box[3].checked
+  box[4].oldChecked = box[4].checked
+
+}
+
+function youLose(){
+  lossAlpha += 0.01
+
+  ctx.fillStyle = "#FF0000"
+  ctx.globalAlpha = lossAlpha
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.globalAlpha = 1
+
+  if(lossAlpha >= 1){
+    lossAlpha = 1
+    ctx.fillStyle = "#FFFFFF"
+    ctx.font = "100px Arial";
+    ctx.fillText("You Lose", 750, 550);
+  }
+}
+
+function youWin(){
+  win = true
+  lossAlpha += 0.01
+
+  ctx.fillStyle = "#00BB00"
+  ctx.globalAlpha = lossAlpha
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.globalAlpha = 1
+
+  if(lossAlpha >= 1){
+    lossAlpha = 1
+    ctx.fillStyle = "#FFFFFF"
+    ctx.font = "100px Arial";
+    ctx.fillText("You Win", 750, 550);
+    ctx.fillText(finalTime, 450, 750);
+  }
+}
+
+function drawButtons(){
+  ctx.strokeStyle = "#000000"
+  ctx.fillStyle = "#FFFFFF"
+
+  ctx.beginPath()
+  ctx.arc(120, canvas.height - 120, 80, 0, 2 * Math.PI);
+  ctx.arc(340, canvas.height - 120, 80, 0, 2 * Math.PI);
+  ctx.arc(canvas.width - 340, canvas.height - 120, 80, 0, 2 * Math.PI);
+  ctx.arc(canvas.width - 120, canvas.height - 120, 80, 0, 2 * Math.PI);
+  ctx.closePath()
+  ctx.fill()
+
+
+  ctx.fillStyle = "#000000"
+  ctx.font = "100px Arial";
+
+  ctx.beginPath()
+
+  ctx.fillText("1", 90, canvas.height - 85);
+  ctx.fillText("2", 310, canvas.height - 85);
+
+  ctx.fillText("9", canvas.width - 370, canvas.height - 85);
+  ctx.fillText("0", canvas.width - 150, canvas.height - 85);
+
+  ctx.closePath()
+  ctx.fill()
+}
+
 // Taken from this link:
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
 
@@ -51,6 +156,11 @@ function shuffleArray(array) {
         array[i] = array[j];
         array[j] = temp;
     }
+}
+
+function getClick(){
+  getControlScheme()
+  getCellPhysics()
 }
 
 
@@ -122,13 +232,15 @@ class Connector{
 
     this.key = key
 
-    this.maxOffset = 2 * size
+    this.maxOffset = 4 * size
 
     //executions per period
     this.velocity = this.maxOffset / period
 
     this.offset = 0
+
     this.extend = false
+    this.retract = false
 
     this.growing = false
     this.shrinking = false
@@ -146,31 +258,25 @@ class Connector{
     ctx.lineTo(this.rgt.x, this.rgt.y)
 
     ctx.stroke()
-
-
   }
 
   update(){
     if(this.extend){
       this.offset+=this.velocity
-      this.growing = true
-      this.shrinking = false
     }
 
-    else{
+    if(this.retract){
       this.offset-=this.velocity
-      this.shrinking = true
-      this.growing = false
     }
 
     if(this.offset > this.maxOffset){
       this.offset = this.maxOffset
-      this.growing = false
+      this.extend = false
     }
 
     if(this.offset < 0){
       this.offset = 0
-      this.shrinking = false
+      this.retract = false
     }
   }
 }
@@ -227,12 +333,68 @@ class Nanobot{
     let t2 = this.c[1].offset / this.c[1].maxOffset
 
     for(let i=0; i<3; i++){
-      this.n[i].x += (this.size/24) * (this.c[0].growing - this.c[0].shrinking) * (1 + (1 - t2))
-      this.n[i].x -= (this.size/24) * (this.c[1].growing - this.c[1].shrinking) * (1 + (1 - t1))
+      this.n[i].x += (this.size/11) * (this.c[0].extend - this.c[0].retract) * (1 + (1 - t2))/2
+      this.n[i].x -= (this.size/11) * (this.c[1].extend - this.c[1].retract) * (1 + (1 - t1))/2
     }
 
     this.n[0].x = (this.n[1].x - 4 * this.size - this.c[0].offset)
     this.n[2].x = (this.n[1].x + 4 * this.size + this.c[1].offset)
+  }
+
+  control1(){
+    if(ctr["1"]){
+      this.c[0].extend = true
+      this.c[0].retract = false
+    }
+    else{
+      this.c[0].extend = false
+      this.c[0].retract = true
+    }
+
+    if(ctr["2"]){
+      this.c[1].extend = true
+      this.c[1].retract = false
+    }
+    else{
+      this.c[1].extend = false
+      this.c[1].retract = true
+    }
+  }
+
+  control2(){
+    if(ctr["1"]){
+      this.c[0].extend = true
+      this.c[0].retract = false
+    }
+
+    if(ctr["2"]){
+      this.c[0].extend = false
+      this.c[0].retract = true
+    }
+
+    if(ctr["9"]){
+      this.c[1].extend = true
+      this.c[1].retract = false
+    }
+
+    if(ctr["0"]){
+      this.c[1].extend = false
+      this.c[1].retract = true
+    }
+  }
+
+  control3(){
+    if(ctr["1"]) this.c[0].extend = true
+    else this.c[0].extend = false
+
+    if(ctr["2"]) this.c[0].retract = true
+    else this.c[0].retract = false
+
+    if(ctr["9"]) this.c[1].extend = true
+    else this.c[1].extend = false
+
+    if(ctr["0"]) this.c[1].retract = true
+    else this.c[1].retract = false
   }
 
   draw(){
@@ -256,29 +418,15 @@ class Nanobot{
   }
 
   update(){
-    if(ctr["1"]){
-      this.c[0].extend = true
-    }
-    else{
-      this.c[0].extend = false
-    }
-
-    if(ctr["2"]){
-      this.c[1].extend = true
-    }
-    else{
-      this.c[1].extend = false
-    }
+    if(box[0].checked) this.control1()
+    if(box[1].checked) this.control2()
+    if(box[2].checked) this.control3()
 
     for(let i=0; i<this.c.length; i++){
       this.c[i].update()
     }
 
     this.moveNodes()
-
-    for(let i=0; i<this.c.length; i++){
-      this.c[i].update()
-    }
 
     this.n[0].update()
     this.n[1].update()
@@ -289,37 +437,34 @@ class Nanobot{
 
 class Cell{
   constructor(x, y, size){
-    // this.x = x + Math.random() * size
-    // this.y = y + Math.random() * size
+    this.x = x + Math.random() * size
+    this.y = y + Math.random() * size
 
-    this.x = x
-    this.y = y
-    this.size = size
+    this.size = size + Math.random() * size/2
 
     this.dir = {
       x:0,
       y:0
     }
 
-    this.drawsize = 1
+    this.drawsize = 1.5
 
     this.velocity = 0
 
     this.col = "#FF0000"
-
-    // let rNum1 = Math.floor(Math.random() * 16)
-    // let rNum2 = Math.floor(Math.random() * 16)
-    //
-    // this.col = "#" + rNum1.toString(16) + rNum1.toString(16) + "0000"
   }
 
   bounce(obj){
     // Different bounce physics
-    // let c = obj.velocity + this.velocity
-    // this.velocity = (c/2)
-    // obj.velocity = (c/2)
+    if(box[3].checked){
+      this.velocity = obj.velocity * 0.8
+    }
 
-    this.velocity = obj.velocity * 0.8
+    if(box[4].checked){
+      let c = obj.velocity + this.velocity
+      this.velocity = (c/2)
+      obj.velocity = (c/2)
+    }
 
     this.dir = getDirection(obj, this)
 
@@ -339,7 +484,8 @@ class Cell{
     this.x += this.dir.x * this.velocity
     this.y += this.dir.y * this.velocity
 
-    this.velocity*=0.9999
+    if(box[3].checked) this.velocity*=0.999
+    if(box[4].checked) this.velocity*=0.9
 
     if(this.velocity <= 0){
       this.velocity = 0
@@ -403,11 +549,11 @@ class Clot{
 
   makeClot(){
     for(let j=0; j<60; j++){
-      //let start = Math.floor(2*Math.sin(Math.PI/2.001 * (30 - Math.abs(j-30) )/30)*this.size/1.2)-10
-      for(let i=0; i<10; i++){               // for(let i=start; i<20 - start; i++){
+      let start = Math.floor(2*Math.sin(Math.PI/2.001 * (30 - Math.abs(j-30) )/30)*this.size/1.2)-10
+      for(let i=0; i<10; i++){  //for(let i=start; i<20 - start; i++){
         this.cells.push(new Cell(
-          this.x - (i - 10) * this.size * 2, // this.x - (i - (10 - start/10)) * this.size * 2,
-          this.y - (j - 30) * this.size * 2,
+          this.x - (i - 5) * this.size * 2, //this.x - (i - (10 - start/10)) * this.size * 2,
+          this.y - (j - 30) * this.size * 2, //this.y - (j - 30) * this.size * 2,
           this.size
         ))
       }
