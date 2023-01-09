@@ -1,3 +1,4 @@
+var cvtHex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]
 function normalize(obj){
   let mag = Math.abs(Math.sqrt(
     obj.x * obj.x + obj.y * obj.y
@@ -16,6 +17,15 @@ function getDistance(obj1, obj2){
   ans = Math.sqrt(ans)
 
   return(ans)
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        let temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
 }
 
 function getDirection(obj1, obj2){
@@ -57,6 +67,7 @@ function youLose(){
 }
 
 function youWin(){
+  win = true
   lossAlpha += 0.01
 
   ctx.fillStyle = "#00BB00"
@@ -69,104 +80,21 @@ function youWin(){
     ctx.fillStyle = "#FFFFFF"
     ctx.font = "100px Arial";
     ctx.fillText("You Win", 750, 550);
-    ctx.fillText(timer.finalTime, 450, 750);
+    ctx.fillText(finalTime, 450, 750);
   }
 }
 
 // Taken from this link:
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
 function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        let temp = array[i];
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
         array[i] = array[j];
         array[j] = temp;
     }
-}
-
-var cvtHex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]
-
-var mouse = {
-  x:0,
-  y:0,
-  old:{
-    x:0,
-    y:0
-  },
-  oldOld:{
-    x:0,
-    y:0
-  },
-  dir:{
-    x:0,
-    y:0
-  }
-}
-mouse.update = function(event){
-  // credit to Rafał S at:
-  //https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas?answertab=trending#tab-top
-  let rect = canvas.getBoundingClientRect();
-
-  this.oldOld = {
-    x:this.old.x,
-    y:this.old.y
-  }
-
-  this.old = {
-    x:this.x,
-    y:this.y
-  }
-
-  this.dir = normalize(mouse)
-
-  this.x = (event.clientX - rect.left)/scr_ratio - borderW
-  this.y = (event.clientY - rect.top)/scr_ratio - borderW
-}
-window.addEventListener("mousemove", function(){
-  mouse.update(event)
-});
-
-var timer = {
-  time: 0,
-  seconds: 120,
-  stall:true,
-  win:false,
-  finalTime:""
-}
-timer.update = function(){
-  if(ctr["1"] || ctr["2"] || ctr["9"] || ctr["0"]) timer.stall = false
-
-  if(!timer.stall){
-    timer.time ++
-
-    if(timer.time%fps == 0 && timer.seconds != 0){
-      timer.seconds --
-    }
-  }
-
-  ctx.fillStyle = "#FFFFFF"
-  let str = "" + timer.seconds + ""
-  ctx.font = "100px Arial";
-  ctx.fillText(str, 10, 90);
-}
-timer.checkWin = function(){
-  if(nano.n[2].x >= 1550 && timer.seconds>0 && !timer.win){
-    timer.win = true
-
-    let tm = timer.time/fps
-    tm = Math.floor(tm * 100)
-    tm = tm/100
-    timer.finalTime = "Score: " + tm + " seconds"
-  }
-
-  if(timer.win){
-    youWin()
-  }
-
-  if(timer.seconds <= 0 && !timer.win){
-    youLose()
-  }
 }
 
 
@@ -174,8 +102,6 @@ class Scene{
   constructor(){
     this.x = 0
     this.y = 0
-
-    this.size = gameSize
 
     this.w = canvas.width
     this.h = canvas.height
@@ -188,45 +114,12 @@ class Scene{
     ctx.strokeStyle = this.col
     ctx.clearRect(this.x, this.y, this.w, this.h)
     ctx.fillRect(this.x, this.y, this.w, this.h)
-
-    ctx.fillStyle = "#FF0000"
-    ctx.beginPath()
-    ctx.moveTo(0, 0)
-    ctx.lineTo(0, canvas.height/5)
-    ctx.arc(0, 400, 400,      7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(520, 100, 200,     5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(1040, 400, 400,    7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(1560, 100, 200,     5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(2080, 400, 400,   7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(2600, 100, 200,    5*Math.PI/6, Math.PI/6, true);
-    //ctx.arc(3*canvas.width/8, canvas.height/16, canvas.width/8, 3*Math.PI/4, Math.PI/4, true);
-    ctx.lineTo(canvas.width, 0)
-    ctx.closePath()
-    ctx.fill()
-
-    ctx.fillStyle = "#FF0000"
-    ctx.beginPath()
-    ctx.moveTo(0, canvas.height)
-    ctx.lineTo(0, canvas.height/5)
-    ctx.arc(0, canvas.height -  100, 200,     7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(520, canvas.height - 400, 400,      5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(520+520, canvas.height -  100, 200,     7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(1040+520, canvas.height -  400, 400,    5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(1560+520, canvas.height -  100, 200,     7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(2080+520, canvas.height -  400, 400,   5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(2600+520, canvas.height -  100, 200,    7*Math.PI/6, 11*Math.PI/6);
-    ctx.lineTo(canvas.width, canvas.height)
-    //ctx.arc(3*canvas.width/8, canvas.height/16, canvas.width/8, 3*Math.PI/4, Math.PI/4, true);
-    //ctx.lineTo(canvas.width, 0)
-    ctx.closePath()
-    ctx.fill()
-
   }
 }
 
 //A Node is a singular circular section of the nanobot.
 class Node{
-  constructor(x, y, size){
+  constructor(x, y, size, parent){
     this.x = x
     this.y = y
 
@@ -235,6 +128,8 @@ class Node{
     this.velocity = 5
 
     this.oldX = 0
+
+    this.parent = parent
 
     this.lft = null
     this.rgt = null
@@ -246,10 +141,21 @@ class Node{
     //draws & fills in a circle at the nodes location
 
     ctx.beginPath()
+
     ctx.fillStyle = this.col
+
     ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
     ctx.closePath()
+
     ctx.fill()
+
+    ctx.fillStyle = "#555555"
+    ctx.beginPath()
+    ctx.arc(this.x, this.y, this.size, 1.772, 4.511)
+    ctx.arc(this.x + (3*this.size)/10, this.y, this.size * 1.1, 4.245, 2.037, true)
+    ctx.closePath()
+    ctx.fill()
+
 
   }
 
@@ -261,13 +167,19 @@ class Node{
 
 //A Connector is a link between the nodes.
 class Connector{
-  constructor(size, key){
+  constructor(size, parent, key){
     this.size = size
+
+    this.parent = parent
+
+    this.key = key
 
     this.maxOffset = 4 * size
 
     //executions per period
     this.velocity = this.maxOffset / period
+
+    this.offset = 0
 
     this.extend = false
     this.retract = false
@@ -289,6 +201,26 @@ class Connector{
 
     ctx.stroke()
   }
+
+  update(){
+    if(this.extend){
+      this.offset+=this.velocity
+    }
+
+    if(this.retract){
+      this.offset-=this.velocity
+    }
+
+    if(this.offset > this.maxOffset){
+      this.offset = this.maxOffset
+      this.extend = false
+    }
+
+    if(this.offset < 0){
+      this.offset = 0
+      this.retract = false
+    }
+  }
 }
 
 
@@ -296,27 +228,6 @@ class Nanobot{
   constructor(x, y, size){
     this.x = x
     this.y = y
-
-    this.active = false
-    this.move = "0000"
-
-    this.moveFrame = 0
-    this.waitFrame = 0
-    this.movements = {}
-
-    for(let i1=0; i1<2; i1++){
-      for(let i2=0; i2<2; i2++){
-        for(let i3=0; i3<2; i3++){
-          for(let i4=0; i4<2; i4++){
-            let str = i1.toString() + i2.toString() +
-                      i3.toString() + i4.toString()
-
-            this.movements[str] = getNanoVelocities(i1, i2, i3, i4)
-
-          }
-        }
-      }
-    }
 
     this.d = 0
 
@@ -331,19 +242,15 @@ class Nanobot{
     this.order = [
       [0, 0], [1, 0], [1, 1], [0, 1]
     ]
-
-    this.v = [
-
-    ]
   }
 
   createStructure(){
-    this.n.push( new Node(this.x - this.size * 4, this.y, this.size) )
+    this.n.push( new Node(this.x - this.size * 4, this.y, this.size, this) )
     this.n.push( new Node(this.x, this.y, this.size) )
-    this.n.push( new Node(this.x + this.size * 4, this.y, this.size) )
+    this.n.push( new Node(this.x + this.size * 4, this.y, this.size, this) )
 
-    this.c.push( new Connector(this.size, "1") )
-    this.c.push( new Connector(this.size, "2") )
+    this.c.push( new Connector(this.size, this, "1") )
+    this.c.push( new Connector(this.size, this, "2") )
 
     for(let i=0; i<2; i++){
       this.c[i].lft = this.n[i]
@@ -359,6 +266,77 @@ class Nanobot{
 
       this.c[i].otherC = this.c[ (i + 1) % 2 ]
     }
+  }
+
+  moveNodes(){
+    let v = 0
+
+    let t1 = this.c[0].offset / this.c[0].maxOffset
+    let t2 = this.c[1].offset / this.c[1].maxOffset
+
+    for(let i=0; i<3; i++){
+      this.n[i].x += (this.size/11) * (this.c[0].extend - this.c[0].retract) * (1 + (1 - t2))/2
+      this.n[i].x -= (this.size/11) * (this.c[1].extend - this.c[1].retract) * (1 + (1 - t1))/2
+    }
+
+    this.n[0].x = (this.n[1].x - 4 * this.size - this.c[0].offset)
+    this.n[2].x = (this.n[1].x + 4 * this.size + this.c[1].offset)
+  }
+
+  control1(){
+    if(ctr["1"]){
+      this.c[0].extend = true
+      this.c[0].retract = false
+    }
+    else{
+      this.c[0].extend = false
+      this.c[0].retract = true
+    }
+
+    if(ctr["2"]){
+      this.c[1].extend = true
+      this.c[1].retract = false
+    }
+    else{
+      this.c[1].extend = false
+      this.c[1].retract = true
+    }
+  }
+
+  control2(){
+    if(ctr["1"]){
+      this.c[0].extend = true
+      this.c[0].retract = false
+    }
+
+    if(ctr["2"]){
+      this.c[0].extend = false
+      this.c[0].retract = true
+    }
+
+    if(ctr["9"]){
+      this.c[1].extend = true
+      this.c[1].retract = false
+    }
+
+    if(ctr["0"]){
+      this.c[1].extend = false
+      this.c[1].retract = true
+    }
+  }
+
+  control3(){
+    if(ctr["1"]) this.c[0].extend = true
+    else this.c[0].extend = false
+
+    if(ctr["2"]) this.c[0].retract = true
+    else this.c[0].retract = false
+
+    if(ctr["9"]) this.c[1].extend = true
+    else this.c[1].extend = false
+
+    if(ctr["0"]) this.c[1].retract = true
+    else this.c[1].retract = false
   }
 
   draw(){
@@ -381,107 +359,28 @@ class Nanobot{
     }
   }
 
-  updateMove(){
-    let oldMove = this.move
-
-    let i0 = this.move[1]
-    let i2 = this.move[3]
-
-    let i1
-    let i3
-
-    if(ctr["1"]){
-      i1 = "1"
-    }
-
-    else if(ctr["2"]){
-      i1 = "0"
-    }
-
-    else i1 = this.move[1]
-
-    if(ctr["9"]){
-      i3 = "1"
-    }
-
-    else if(ctr["0"]){
-      i3 = "0"
-    }
-
-    else i3 = this.move[3]
-
-    if(i1 == this.move[1] && i3 == this.move[3]){
-      this.active=false
-      return
-    }
-
-    this.move = i0 + i1 + i2 + i3
-  }
-
-  moveNodes(){
-    if(this.active && this.waitFrame == 0){
-      let mv = this.movements[this.move]
-
-      this.n[0].x += this.size * mv[0][this.moveFrame]/5
-      this.n[1].x += this.size * mv[1][this.moveFrame]/5
-      this.n[2].x += this.size * mv[2][this.moveFrame]/5
-
-      this.n[0].update()
-      this.n[1].update()
-      this.n[2].update()
-    }
-
-    if(ctr["Y"]){
-      this.n[0].x += 4
-      this.n[1].x += 4
-      this.n[2].x += 4
-    }
-  }
-
-  checkWait(){
-    if(this.active){
-      if(this.waitFrame > 0){
-        this.waitFrame --
-        if(this.waitFrame == 0){
-          this.updateMove()
-        }
-      }
-    }
-
-    else{
-      if(ctr["1"] || ctr["2"] || ctr["9"] || ctr["0"]){
-        this.waitFrame = 4
-        this.active = true
-      }
-    }
-  }
-
-  updateFrames(){
-    this.checkWait()
-
-    if(this.active && this.waitFrame == 0){
-      this.moveFrame ++
-    }
-
-    if(this.moveFrame == 20){
-      this.active = false
-      this.moveFrame = 0
-      return
-    }
-  }
-
   update(){
-    this.updateFrames()
+    if(controlScheme == 0) this.control1()
+    if(controlScheme == 1) this.control2()
+    if(controlScheme == 2) this.control3()
+
+    for(let i=0; i<this.c.length; i++){
+      this.c[i].update()
+    }
+
     this.moveNodes()
-    this.draw()
+
+    this.n[0].update()
+    this.n[1].update()
+    this.n[2].update()
   }
 }
 
 
 class Cell{
   constructor(x, y, size){
-    this.x = x + Math.random() * size
-    this.y = y + Math.random() * size
+    this.x = x + Math.random() * size/2
+    this.y = y + Math.random() * size/2
     this.size = size + Math.random() * size/2
 
     // this.x = x
@@ -618,7 +517,7 @@ class Clot{
 
     this.broke = false
 
-    this.size = size * 0.5
+    this.size = size * 0.4
 
     this.cells = []
     this.makeClot()
@@ -655,9 +554,9 @@ class Clot{
   makeClot(){
     for(let j=0; j<60; j++){
       let start = Math.floor(2*Math.sin(Math.PI/2.001 * (30 - Math.abs(j-30) )/30)*this.size/1.2)-10
-      for(let i=0; i<10; i++){  //for(let i=start; i<20 - start; i++){
+      for(let i=0; i<6; i++){  //for(let i=start; i<20 - start; i++){
         this.cells.push(new Cell(
-          this.x - (i - 5) * this.size * 2, //this.x - (i - (10 - start/10)) * this.size * 2,
+          this.x - (i - 3) * this.size * 2, //this.x - (i - (10 - start/10)) * this.size * 2,
           this.y - (j - 30) * this.size * 2 + 50, //this.y - (j - 30) * this.size * 2,
           this.size
         ))

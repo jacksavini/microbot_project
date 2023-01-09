@@ -67,12 +67,7 @@ const clot = new Clot((centerX * 3)/2, centerY, gameSize)
 
 //animation() runs each frame
 function animate(){
-  if(ctr["H"]) console.log(sum(getNanoVelocities(1, 0, 1, 1)[1])/4)
-  if(ctr["H"]) console.log(sum(getNanoVelocities(0, 0, 1, 0)[1])/4)
-  if(ctr["H"]) console.log(sum(getNanoVelocities(0, 1, 0, 0)[1])/4)
-  if(ctr["H"]) console.log(sum(getNanoVelocities(1, 1, 0, 1)[1])/4)
   if(ctr["H"]) ctr["H"] = false
-
 
   background.draw()
 

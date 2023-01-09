@@ -197,12 +197,6 @@ function getNanoVelocities(l1Now, l1Next, l2Now, l2Next){
     v3.push(v1[i] + dl1 + dl2)
   }
 
-  console.log("t: " + t)
-
-  console.log("v1: " + v1)
-  console.log("v2: " + v2)
-  console.log("v3: " + v3)
-
   return [v1, v2, v3]
 
 
