@@ -57,7 +57,7 @@ function youLose(){
 }
 
 function youWin(){
-  lossAlpha += 0.01
+  lossAlpha += 0.007
 
   ctx.fillStyle = "#00BB00"
   ctx.globalAlpha = lossAlpha
@@ -151,7 +151,7 @@ timer.update = function(){
   ctx.fillText(str, 10, 90);
 }
 timer.checkWin = function(){
-  if(nano.n[2].x >= 1550 && timer.seconds>0 && !timer.win){
+  if(nano.n[2].x >= 1450 && timer.seconds>0 && !timer.win){
     timer.win = true
 
     let tm = timer.time/fps
@@ -169,7 +169,6 @@ timer.checkWin = function(){
   }
 }
 
-
 class Scene{
   constructor(){
     this.x = 0
@@ -181,308 +180,120 @@ class Scene{
     this.h = canvas.height
 
     this.col = "#000000"
+
+    this.bloodWidth = this.w*3/4
+
+    this.edgeList = []
   }
 
-  draw(){
-    ctx.fillStyle = this.col
-    ctx.strokeStyle = this.col
+  update(){
+    if(timer.win)(
+      this.bloodWidth += 7
+    )
+  }
+
+  drawBottom(){
+    ctx.fillStyle = "#000000"
     ctx.clearRect(this.x, this.y, this.w, this.h)
     ctx.fillRect(this.x, this.y, this.w, this.h)
 
+    this.update()
+
     ctx.fillStyle = "#FF0000"
+
+    ctx.fillRect(0, 0, this.bloodWidth, this.h)
+
+    let n = clot.edgeList.length
+
+    ctx.beginPath()
+    ctx.moveTo(0, 0)
+
+    ctx.lineTo(clot.edgeList[n - 1].x, 0)
+
+    for(let i=n-1; i>0; i--){
+      ctx.lineTo(
+        clot.edgeList[i].x,
+        clot.edgeList[i].y
+      )
+
+    }
+
+    ctx.lineTo(clot.edgeList[0].x, this.h)
+
+    ctx.lineTo(0, this.h)
+    ctx.closePath()
+    ctx.fill("evenodd")
+
+  }
+
+  drawTop(){
+    ctx.fillStyle = "#990000"
     ctx.beginPath()
     ctx.moveTo(0, 0)
     ctx.lineTo(0, canvas.height/5)
-    ctx.arc(0, 400, 400,      7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(520, 100, 200,     5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(1040, 400, 400,    7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(1560, 100, 200,     5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(2080, 400, 400,   7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(2600, 100, 200,    5*Math.PI/6, Math.PI/6, true);
+    ctx.arc(0, 450, 400,      7*Math.PI/6, 11*Math.PI/6);
+    ctx.arc(520, 150, 200,    5*Math.PI/6, Math.PI/6, true);
+    ctx.arc(1040, 450, 400,   7*Math.PI/6, 11*Math.PI/6);
+    ctx.arc(1560, 150, 200,   5*Math.PI/6, Math.PI/6, true);
+    ctx.arc(2080, 450, 400,   7*Math.PI/6, 11*Math.PI/6);
+    ctx.arc(2600, 150, 200,   5*Math.PI/6, Math.PI/6, true);
     //ctx.arc(3*canvas.width/8, canvas.height/16, canvas.width/8, 3*Math.PI/4, Math.PI/4, true);
     ctx.lineTo(canvas.width, 0)
     ctx.closePath()
     ctx.fill()
 
-    ctx.fillStyle = "#FF0000"
     ctx.beginPath()
     ctx.moveTo(0, canvas.height)
-    ctx.lineTo(0, canvas.height/5)
-    ctx.arc(0, canvas.height -  100, 200,     7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(520, canvas.height - 400, 400,      5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(520+520, canvas.height -  100, 200,     7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(1040+520, canvas.height -  400, 400,    5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(1560+520, canvas.height -  100, 200,     7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(2080+520, canvas.height -  400, 400,   5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(2600+520, canvas.height -  100, 200,    7*Math.PI/6, 11*Math.PI/6);
+    ctx.arc(0, canvas.height -  150, 200,         7*Math.PI/6, 11*Math.PI/6);
+    ctx.arc(520, canvas.height - 450, 400,        5*Math.PI/6, Math.PI/6, true);
+    ctx.arc(520+520, canvas.height -  150, 200,   7*Math.PI/6, 11*Math.PI/6);
+    ctx.arc(1040+520, canvas.height -  450, 400,  5*Math.PI/6, Math.PI/6, true);
+    ctx.arc(1560+520, canvas.height -  150, 200,  7*Math.PI/6, 11*Math.PI/6);
+    ctx.arc(2080+520, canvas.height -  450, 400,  5*Math.PI/6, Math.PI/6, true);
+    ctx.arc(2600+520, canvas.height -  150, 200,  7*Math.PI/6, 11*Math.PI/6);
     ctx.lineTo(canvas.width, canvas.height)
     //ctx.arc(3*canvas.width/8, canvas.height/16, canvas.width/8, 3*Math.PI/4, Math.PI/4, true);
     //ctx.lineTo(canvas.width, 0)
     ctx.closePath()
     ctx.fill()
 
+    // ctx.beginPath()
+    // ctx.strokeStyle= "#440000"
+    // ctx.lineWidth = 10
+    // ctx.moveTo(0, 0)
+    // ctx.arc(0, 450, 400,      7*Math.PI/6, 11*Math.PI/6);
+    // ctx.arc(520, 150, 200,    5*Math.PI/6, Math.PI/6, true);
+    // ctx.arc(1040, 450, 400,   7*Math.PI/6, 11*Math.PI/6);
+    // ctx.arc(1560, 150, 200,   5*Math.PI/6, Math.PI/6, true);
+    // ctx.arc(2080, 450, 400,   7*Math.PI/6, 11*Math.PI/6);
+    // ctx.arc(2600, 150, 200,   5*Math.PI/6, Math.PI/6, true);
+    // ctx.stroke()
+    //
+    // ctx.lineWidth = 10
+    // ctx.moveTo(0, canvas.height)
+    //
+    // ctx.beginPath()
+    // ctx.moveTo(0, canvas.height)
+    // ctx.arc(0, canvas.height -  150, 200,         7*Math.PI/6, 11*Math.PI/6);
+    // ctx.arc(520, canvas.height - 450, 400,        5*Math.PI/6, Math.PI/6, true);
+    // ctx.arc(520+520, canvas.height -  150, 200,   7*Math.PI/6, 11*Math.PI/6);
+    // ctx.arc(1040+520, canvas.height -  450, 400,  5*Math.PI/6, Math.PI/6, true);
+    // ctx.arc(1560+520, canvas.height -  150, 200,  7*Math.PI/6, 11*Math.PI/6);
+    // ctx.arc(2080+520, canvas.height -  450, 400,  5*Math.PI/6, Math.PI/6, true);
+    // ctx.arc(2600+520, canvas.height -  150, 200,  7*Math.PI/6, 11*Math.PI/6);
+    // ctx.lineTo(canvas.width, canvas.height)
+    // //ctx.arc(3*canvas.width/8, canvas.height/16, canvas.width/8, 3*Math.PI/4, Math.PI/4, true);
+    // //ctx.lineTo(canvas.width, 0)
+    // ctx.stroke()
+
   }
 }
-
-//A Node is a singular circular section of the nanobot.
-class Node{
-  constructor(x, y, size){
-    this.x = x
-    this.y = y
-
-    this.size = size
-
-    this.velocity = 5
-
-    this.oldX = 0
-
-    this.lft = null
-    this.rgt = null
-
-    this.col = "#888888"
-  }
-
-  draw(){
-    //draws & fills in a circle at the nodes location
-
-    ctx.beginPath()
-    ctx.fillStyle = this.col
-    ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
-    ctx.closePath()
-    ctx.fill()
-
-  }
-
-  update(){
-    this.velocity = Math.abs(this.x - this.oldX, 0)
-    this.oldX = this.x
-  }
-}
-
-//A Connector is a link between the nodes.
-class Connector{
-  constructor(size, key){
-    this.size = size
-
-    this.maxOffset = 4 * size
-
-    //executions per period
-    this.velocity = this.maxOffset / period
-
-    this.extend = false
-    this.retract = false
-
-    this.growing = false
-    this.shrinking = false
-
-    this.col = "#CCCCCC"
-  }
-
-  draw(){
-    ctx.beginPath()
-
-    ctx.lineWidth = this.size
-    ctx.strokeStyle = this.col
-
-    ctx.moveTo(this.lft.x, this.lft.y)
-    ctx.lineTo(this.rgt.x, this.rgt.y)
-
-    ctx.stroke()
-  }
-}
-
-
-class Nanobot{
-  constructor(x, y, size){
-    this.x = x
-    this.y = y
-
-    this.active = false
-    this.move = "0000"
-
-    this.moveFrame = 0
-    this.waitFrame = 0
-    this.movements = {}
-
-    for(let i1=0; i1<2; i1++){
-      for(let i2=0; i2<2; i2++){
-        for(let i3=0; i3<2; i3++){
-          for(let i4=0; i4<2; i4++){
-            let str = i1.toString() + i2.toString() +
-                      i3.toString() + i4.toString()
-
-            this.movements[str] = getNanoVelocities(i1, i2, i3, i4)
-
-          }
-        }
-      }
-    }
-
-    this.d = 0
-
-    this.size = size
-
-    this.n = []
-    this.c = []
-
-    this.createStructure()
-
-    this.turn = 0
-    this.order = [
-      [0, 0], [1, 0], [1, 1], [0, 1]
-    ]
-
-    this.v = [
-
-    ]
-  }
-
-  createStructure(){
-    this.n.push( new Node(this.x - this.size * 4, this.y, this.size) )
-    this.n.push( new Node(this.x, this.y, this.size) )
-    this.n.push( new Node(this.x + this.size * 4, this.y, this.size) )
-
-    this.c.push( new Connector(this.size, "1") )
-    this.c.push( new Connector(this.size, "2") )
-
-    for(let i=0; i<2; i++){
-      this.c[i].lft = this.n[i]
-      this.c[i].rgt = this.n[i+1]
-
-      this.n[i+1].lft = this.c[i]
-      this.n[i].rgt = this.c[i]
-
-      this.c[i].lftW = i+1
-      this.c[i].rgtW = this.c.length - i
-      this.c[i].totW = this.c[i].lftW + this.c[i].rgtW
-      this.c[i].center = this.n[1]
-
-      this.c[i].otherC = this.c[ (i + 1) % 2 ]
-    }
-  }
-
-  draw(){
-    for(let i=0; i<this.c.length; i++){
-      this.c[i].draw()
-    }
-
-    ctx.beginPath()
-
-    ctx.moveTo(this.n[1].x - 3 * this.size, this.y)
-    ctx.lineTo(this.n[1].x + 3 * this.size, this.y)
-
-    ctx.lineWidth *= 1.2
-    ctx.strokeStyle = "#AAAAAA"
-
-    ctx.stroke()
-
-    for(let i=0; i<this.n.length; i++){
-      this.n[i].draw()
-    }
-  }
-
-  updateMove(){
-    let oldMove = this.move
-
-    let i0 = this.move[1]
-    let i2 = this.move[3]
-
-    let i1
-    let i3
-
-    if(ctr["1"]){
-      i1 = "1"
-    }
-
-    else if(ctr["2"]){
-      i1 = "0"
-    }
-
-    else i1 = this.move[1]
-
-    if(ctr["9"]){
-      i3 = "1"
-    }
-
-    else if(ctr["0"]){
-      i3 = "0"
-    }
-
-    else i3 = this.move[3]
-
-    if(i1 == this.move[1] && i3 == this.move[3]){
-      this.active=false
-      return
-    }
-
-    this.move = i0 + i1 + i2 + i3
-  }
-
-  moveNodes(){
-    if(this.active && this.waitFrame == 0){
-      let mv = this.movements[this.move]
-
-      this.n[0].x += this.size * mv[0][this.moveFrame]/5
-      this.n[1].x += this.size * mv[1][this.moveFrame]/5
-      this.n[2].x += this.size * mv[2][this.moveFrame]/5
-
-      this.n[0].update()
-      this.n[1].update()
-      this.n[2].update()
-    }
-
-    if(ctr["Y"]){
-      this.n[0].x += 4
-      this.n[1].x += 4
-      this.n[2].x += 4
-    }
-  }
-
-  checkWait(){
-    if(this.active){
-      if(this.waitFrame > 0){
-        this.waitFrame --
-        if(this.waitFrame == 0){
-          this.updateMove()
-        }
-      }
-    }
-
-    else{
-      if(ctr["1"] || ctr["2"] || ctr["9"] || ctr["0"]){
-        this.waitFrame = 4
-        this.active = true
-      }
-    }
-  }
-
-  updateFrames(){
-    this.checkWait()
-
-    if(this.active && this.waitFrame == 0){
-      this.moveFrame ++
-    }
-
-    if(this.moveFrame == 20){
-      this.active = false
-      this.moveFrame = 0
-      return
-    }
-  }
-
-  update(){
-    this.updateFrames()
-    this.moveNodes()
-    this.draw()
-  }
-}
-
 
 class Cell{
   constructor(x, y, size){
-    this.x = x + Math.random() * size
-    this.y = y + Math.random() * size
-    this.size = size + Math.random() * size/2
+    this.x = x + Math.random() * size/5
+    this.y = y + Math.random() * size/5
+    this.size = size + Math.random() * size/4
 
     // this.x = x
     // this.y = y
@@ -608,7 +419,6 @@ class Cell{
   }
 }
 
-
 class Clot{
   constructor(x, y, size){
     this.x = x
@@ -621,6 +431,8 @@ class Clot{
     this.size = size * 0.5
 
     this.cells = []
+    this.edgeList = []
+
     this.makeClot()
 
     this.order = this.getOrder()
@@ -661,7 +473,15 @@ class Clot{
           this.y - (j - 30) * this.size * 2 + 50, //this.y - (j - 30) * this.size * 2,
           this.size
         ))
+
+        if(i==0){
+          this.edgeList.push(this.cells[this.cells.length - 1])
+        }
       }
+    }
+
+    for(let i=0; i<this.edgeList.length; i++){
+      console.log(this.edgeList[i].y)
     }
   }
 

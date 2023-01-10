@@ -63,19 +63,19 @@ const background = new Scene()
 //our main character/nanobot
 const nano = new Nanobot(centerX/2, centerY, gameSize)
 
-const clot = new Clot((centerX * 3)/2, centerY, gameSize)
+const clot = new Clot((centerX * 5)/4, centerY, gameSize)
 
 //animation() runs each frame
 function animate(){
-  if(ctr["H"]) ctr["H"] = false
-
-  background.draw()
+  background.drawBottom()
 
   nano.update()
   nano.draw()
 
   clot.update()
   clot.draw()
+
+  background.drawTop()
 
   timer.update()
   timer.checkWin()
