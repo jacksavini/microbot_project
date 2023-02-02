@@ -4,24 +4,20 @@
    <meta charset="utf-8">
    <link rel=stylesheet href=styles.css>
 
-   <script src="math.js"></script>
-
    <script src="tools.js"></script>
-   <script src="nanobot1.js"></script>
-
+   <script src="nanobot.js"></script>
  </head>
 
  <body>
    <h1>Rules: Move the Bot, Break the Clot!</h1>
-   <h3 id="tutorial">
-     Press:<br>
-     '1' to extend the left arm <br>
-     '2' to retract the left arm <br>
-     '9' to extend the right arm <br>
-     '0' to retract the right arm <br>
-  </h3>
+   <h3 id="tutorial">Press 1 to control the left arm, 2 to control the right arm</h3>
+   <input type="range" min="0" max="99" value="99" id="zoomSlider"><br>
    <canvas id="canvas"></canvas>
+
    <script src="logic.js"></script>
+
+   <br><br><br><br><br><br><br><br><br><br>
+
  </body>
 
 </html>

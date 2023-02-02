@@ -73,6 +73,51 @@ function youWin(){
   }
 }
 
+function getZoom(x, y, w, h){
+  let amt = zoominess
+
+  let x2 = x * (amt * 2 + 1)
+  let y2 = y * (amt * 2 + 1)
+
+  let w2 = w * (amt * 2 + 1)
+  let h2 = h * (amt * 2 + 1)
+
+  x2 -= canvas.width * amt * 0.95
+  y2 -= canvas.height * amt * 0.57
+
+  return([x2, y2, w2, h2])
+
+}
+
+function drawPNG(x, y, w, h, img){
+
+  let zoom = getZoom(
+    x,
+    y,
+    w,
+    h
+  )
+
+  if(typeof dw == undefined){
+    ctx.drawImage(
+      img,
+      zoom[0],
+      zoom[1],
+      zoom[2],
+      zoom[3]
+    );
+    return
+  }
+  ctx.drawImage(
+    img,
+    zoom[0],
+    zoom[1],
+    zoom[2],
+    zoom[3]
+  );
+
+}
+
 // Taken from this link:
 // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
@@ -83,6 +128,12 @@ function shuffleArray(array) {
         array[i] = array[j];
         array[j] = temp;
     }
+}
+
+function makeImage(source){
+  let img = new Image();
+  img.src = source;
+  return(img)
 }
 
 var cvtHex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]
@@ -151,7 +202,7 @@ timer.update = function(){
   ctx.fillText(str, 10, 90);
 }
 timer.checkWin = function(){
-  if(nano.n[2].x >= 1450 && timer.seconds>0 && !timer.win){
+  if(nano.n[2].x >= 1280 && timer.seconds>0 && !timer.win){
     timer.win = true
 
     let tm = timer.time/fps
@@ -174,117 +225,38 @@ class Scene{
     this.x = 0
     this.y = 0
 
-    this.size = gameSize
-
     this.w = canvas.width
     this.h = canvas.height
-
-    this.col = "#000000"
-
-    this.bloodWidth = this.w*3/4
-
-    this.edgeList = []
-  }
-
-  update(){
-    if(timer.win)(
-      this.bloodWidth += 7
-    )
   }
 
   drawBottom(){
-    ctx.fillStyle = "#000000"
     ctx.clearRect(this.x, this.y, this.w, this.h)
-    ctx.fillRect(this.x, this.y, this.w, this.h)
 
-    this.update()
-
-    ctx.fillStyle = "#FF0000"
-
-    ctx.fillRect(0, 0, this.bloodWidth, this.h)
-
-    let n = clot.edgeList.length
-
-    ctx.beginPath()
-    ctx.moveTo(0, 0)
-
-    ctx.lineTo(clot.edgeList[n - 1].x, 0)
-
-    for(let i=n-1; i>0; i--){
-      ctx.lineTo(
-        clot.edgeList[i].x,
-        clot.edgeList[i].y
-      )
-
-    }
-
-    ctx.lineTo(clot.edgeList[0].x, this.h)
-
-    ctx.lineTo(0, this.h)
-    ctx.closePath()
-    ctx.fill("evenodd")
+    drawPNG(
+      this.x + canvas.width / 4.1,
+      this.y + canvas.height / 7,
+      this.w/2, this.h/2, img[3]
+    )
 
   }
 
   drawTop(){
-    ctx.fillStyle = "#990000"
-    ctx.beginPath()
-    ctx.moveTo(0, 0)
-    ctx.lineTo(0, canvas.height/5)
-    ctx.arc(0, 450, 400,      7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(520, 150, 200,    5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(1040, 450, 400,   7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(1560, 150, 200,   5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(2080, 450, 400,   7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(2600, 150, 200,   5*Math.PI/6, Math.PI/6, true);
-    //ctx.arc(3*canvas.width/8, canvas.height/16, canvas.width/8, 3*Math.PI/4, Math.PI/4, true);
-    ctx.lineTo(canvas.width, 0)
-    ctx.closePath()
-    ctx.fill()
 
-    ctx.beginPath()
-    ctx.moveTo(0, canvas.height)
-    ctx.arc(0, canvas.height -  150, 200,         7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(520, canvas.height - 450, 400,        5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(520+520, canvas.height -  150, 200,   7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(1040+520, canvas.height -  450, 400,  5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(1560+520, canvas.height -  150, 200,  7*Math.PI/6, 11*Math.PI/6);
-    ctx.arc(2080+520, canvas.height -  450, 400,  5*Math.PI/6, Math.PI/6, true);
-    ctx.arc(2600+520, canvas.height -  150, 200,  7*Math.PI/6, 11*Math.PI/6);
-    ctx.lineTo(canvas.width, canvas.height)
-    //ctx.arc(3*canvas.width/8, canvas.height/16, canvas.width/8, 3*Math.PI/4, Math.PI/4, true);
-    //ctx.lineTo(canvas.width, 0)
-    ctx.closePath()
-    ctx.fill()
+    drawPNG(
+      this.x + canvas.width / 4.1,
+      this.y + canvas.height / 7,
+      this.w/2,
+      this.h/2,
+      img[2]
+     )
 
-    // ctx.beginPath()
-    // ctx.strokeStyle= "#440000"
-    // ctx.lineWidth = 10
-    // ctx.moveTo(0, 0)
-    // ctx.arc(0, 450, 400,      7*Math.PI/6, 11*Math.PI/6);
-    // ctx.arc(520, 150, 200,    5*Math.PI/6, Math.PI/6, true);
-    // ctx.arc(1040, 450, 400,   7*Math.PI/6, 11*Math.PI/6);
-    // ctx.arc(1560, 150, 200,   5*Math.PI/6, Math.PI/6, true);
-    // ctx.arc(2080, 450, 400,   7*Math.PI/6, 11*Math.PI/6);
-    // ctx.arc(2600, 150, 200,   5*Math.PI/6, Math.PI/6, true);
-    // ctx.stroke()
-    //
-    // ctx.lineWidth = 10
-    // ctx.moveTo(0, canvas.height)
-    //
-    // ctx.beginPath()
-    // ctx.moveTo(0, canvas.height)
-    // ctx.arc(0, canvas.height -  150, 200,         7*Math.PI/6, 11*Math.PI/6);
-    // ctx.arc(520, canvas.height - 450, 400,        5*Math.PI/6, Math.PI/6, true);
-    // ctx.arc(520+520, canvas.height -  150, 200,   7*Math.PI/6, 11*Math.PI/6);
-    // ctx.arc(1040+520, canvas.height -  450, 400,  5*Math.PI/6, Math.PI/6, true);
-    // ctx.arc(1560+520, canvas.height -  150, 200,  7*Math.PI/6, 11*Math.PI/6);
-    // ctx.arc(2080+520, canvas.height -  450, 400,  5*Math.PI/6, Math.PI/6, true);
-    // ctx.arc(2600+520, canvas.height -  150, 200,  7*Math.PI/6, 11*Math.PI/6);
-    // ctx.lineTo(canvas.width, canvas.height)
-    // //ctx.arc(3*canvas.width/8, canvas.height/16, canvas.width/8, 3*Math.PI/4, Math.PI/4, true);
-    // //ctx.lineTo(canvas.width, 0)
-    // ctx.stroke()
+    drawPNG(
+       this.x,
+       this.y,
+       this.w,
+       this.h,
+       img[0]
+      )
 
   }
 }
@@ -293,19 +265,12 @@ class Cell{
   constructor(x, y, size){
     this.x = x + Math.random() * size/5
     this.y = y + Math.random() * size/5
-    this.size = size + Math.random() * size/4
-
-    // this.x = x
-    // this.y = y
-    // this.size = size
-
-
+    this.size = size + Math.random() * size/2
 
     this.dir = {
       x:0,
       y:0
     }
-
     this.velocity = 0
 
     let magnification = 1.5
@@ -386,35 +351,30 @@ class Cell{
 
   draw(){
 
-    //draws & fills in a circle at the cell's location
-    ctx.fillStyle = this.col
+    drawPNG(
+      this.x - this.drawsize,
+      this.y - this.drawsize,
+      this.drawsize*2,
+      this.drawsize*2,
+      img[1]
+     )
+
+    ctx.globalAlpha = this.col
+    ctx.fillStyle = "#000000"
+
+    let zoom = getZoom(
+      this.x,
+      this.y,
+      this.drawsize,
+      this.drawsize
+    )
 
     ctx.beginPath()
-    ctx.arc(this.x, this.y, this.drawsize, 0, 2 * Math.PI);
+    ctx.arc(zoom[0],zoom[1],zoom[2],0, 2 * Math.PI);
     ctx.closePath()
     ctx.fill()
 
-    // big shadow
-    ctx.fillStyle = this.col2
-    ctx.beginPath()
-    ctx.arc(this.x, this.y, this.drawsize, 1.772, 4.511)
-    ctx.arc(this.x + (3*this.drawsize)/10, this.y, this.drawsize * 1.1, 4.245, 2.037, true)
-    ctx.closePath()
-    ctx.fill()
-
-    // small left shadow
-    ctx.beginPath()
-    ctx.arc(this.x, this.y, this.drawsize * 0.5, 1.772, 4.511)
-    ctx.arc(this.x + (3*this.drawsize * 0.5)/10, this.y, this.drawsize * 0.5 * 1.1, 4.245, 2.037, true)
-    ctx.closePath()
-    ctx.fill()
-
-    // small right shadow
-    ctx.beginPath()
-    ctx.arc(this.x, this.y, this.drawsize * 0.5, -0.902, 0.902)
-    ctx.arc(this.x - (2.4*this.drawsize * 0.5)/10, this.y, this.drawsize * 0.5 * 1.1, 0.427, -0.427, true)
-    ctx.closePath()
-    ctx.fill()
+    ctx.globalAlpha = 1
 
   }
 }
@@ -426,42 +386,17 @@ class Clot{
 
     this.ready = false
 
-    this.broke = false
-
-    this.size = size * 0.5
+    this.size = size
 
     this.cells = []
-    this.edgeList = []
-
     this.makeClot()
 
-    this.order = this.getOrder()
+    this.order = []
+    this.getOrder()
 
     shuffleArray(this.cells)
 
-    for(let i=0; i<this.cells.length; i++){
-      let col = "#"
-      let brightness = 100 + Math.floor( (i/this.cells.length) * 156)
-      col += cvtHex[ Math.floor(brightness/16) ]
-      col += cvtHex[ brightness % 16 ]
-      col += "0000"
-      this.cells[i].col = col
-
-      let col2 = "#"
-      let brightness2 = Math.floor( (i/this.cells.length) * 155)
-      col2 += cvtHex[ Math.floor(brightness2/16) ]
-      col2 += cvtHex[ brightness2 % 16 ]
-      col2 += "0000"
-      this.cells[i].col2 = col2
-    }
-  }
-
-  getOrder(){
-    let order = []
-    for(let i=0; i<this.cells.length; i++){
-      order.push(i)
-    }
-    return order
+    this.shadeCells()
   }
 
   makeClot(){
@@ -473,15 +408,28 @@ class Clot{
           this.y - (j - 30) * this.size * 2 + 50, //this.y - (j - 30) * this.size * 2,
           this.size
         ))
-
-        if(i==0){
-          this.edgeList.push(this.cells[this.cells.length - 1])
-        }
       }
     }
+  }
 
-    for(let i=0; i<this.edgeList.length; i++){
-      console.log(this.edgeList[i].y)
+  getOrder(){
+    for(let i=0; i<this.cells.length; i++){
+      this.order.push(i)
+    }
+  }
+
+  shadeCells(){
+    for(let i=0; i<this.cells.length; i++){
+
+      let brightness = 1 - (100 + Math.floor( (i/this.cells.length) * 156))/256
+      this.cells[i].col = brightness
+
+      let col2 = "#"
+      let brightness2 = Math.floor( (i/this.cells.length) * 155)
+      col2 += cvtHex[ Math.floor(brightness2/16) ]
+      col2 += cvtHex[ brightness2 % 16 ]
+      col2 += "0000"
+      this.cells[i].col2 = col2
     }
   }
 
@@ -492,9 +440,6 @@ class Clot{
   }
 
   update(){
-    //shuffleArray(this.cells)
-    // this.cells.sort(compareDists);
-
     if(!this.ready){
       for(let i=0; i<50; i++){
         for(let j=0; j<this.cells.length; j++){
@@ -505,8 +450,6 @@ class Clot{
     }
 
     this.order.sort(compareDists);
-
-    if(ctr["T"]) this.broken = true;
 
     for(let i=0; i<this.cells.length; i++){
       let j = this.order[i]

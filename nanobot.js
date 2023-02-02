@@ -1,4 +1,4 @@
-timer.seconds = 20
+timer.seconds = 40
 
 //A Node is a singular circular section of the nanobot.
 class Node{
@@ -23,23 +23,13 @@ class Node{
   draw(){
     //draws & fills in a circle at the nodes location
 
-    ctx.beginPath()
-
-    ctx.fillStyle = this.col
-
-    ctx.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
-    ctx.closePath()
-
-    ctx.fill()
-
-    ctx.fillStyle = "#555555"
-    ctx.beginPath()
-    ctx.arc(this.x, this.y, this.size, 1.772, 4.511)
-    ctx.arc(this.x + (3*this.size)/10, this.y, this.size * 1.1, 4.245, 2.037, true)
-    ctx.closePath()
-    ctx.fill()
-
-
+    drawPNG(
+      this.x - this.size,
+      this.y - this.size,
+      this.size * 2,
+      this.size * 2,
+      img[4]
+    )
   }
 
   update(){
@@ -57,7 +47,7 @@ class Connector{
 
     this.key = key
 
-    this.maxOffset = 4 * size
+    this.maxOffset = size * 2
 
     //executions per period
     this.velocity = this.maxOffset / period
@@ -67,31 +57,54 @@ class Connector{
     this.extend = false
     this.retract = false
 
-    this.growing = false
-    this.shrinking = false
-
     this.col = "#CCCCCC"
   }
 
   draw(){
     ctx.beginPath()
 
-    ctx.lineWidth = this.size
+    let newStuff1 = getZoom(this.lft.x, this.lft.y,
+      this.lft.size, this.lft.size)
+
+    let newStuff2 = getZoom(this.rgt.x, this.rgt.y,
+      this.rgt.size, this.rgt.size)
+
+    ctx.lineWidth = newStuff1[2]
     ctx.strokeStyle = this.col
 
-    ctx.moveTo(this.lft.x, this.lft.y)
-    ctx.lineTo(this.rgt.x, this.rgt.y)
+    ctx.moveTo(newStuff1[0], newStuff1[1])
+    ctx.lineTo(newStuff2[0], newStuff2[1])
 
     ctx.stroke()
+
+    let unit = this.lft.size
+
+    if(this.rgt.rgt == null){
+      drawPNG(
+        this.rgt.x - unit * 6,
+        this.lft.y - this.lft.size/2,
+        unit*6,
+        this.lft.size,
+        img[5]
+      )
+    }
+
+    else{
+      drawPNG(
+        this.lft.x,
+        this.lft.y - this.lft.size/2,
+        unit*6,
+        this.lft.size,
+        img[5]
+      )
+    }
+
+
   }
 
   update(){
-    if(this.extend){
-      this.offset+=this.velocity
-    }
-
-    if(this.retract){
-      this.offset-=this.velocity
+    if(this.extend || this.retract){
+      this.offset += (this.velocity * (this.extend - this.retract))
     }
 
     if(this.offset > this.maxOffset){
@@ -112,19 +125,14 @@ class Nanobot{
     this.x = x
     this.y = y
 
-    this.d = 0
-
     this.size = size
+
+    this.bias = 0.7
 
     this.n = []
     this.c = []
 
     this.createStructure()
-
-    this.turn = 0
-    this.order = [
-      [0, 0], [1, 0], [1, 1], [0, 1]
-    ]
   }
 
   createStructure(){
@@ -142,31 +150,27 @@ class Nanobot{
       this.n[i+1].lft = this.c[i]
       this.n[i].rgt = this.c[i]
 
-      this.c[i].lftW = i+1
-      this.c[i].rgtW = this.c.length - i
-      this.c[i].totW = this.c[i].lftW + this.c[i].rgtW
       this.c[i].center = this.n[1]
-
-      this.c[i].otherC = this.c[ (i + 1) % 2 ]
     }
   }
 
   moveNodes(){
-    let v = 0
 
     let t1 = this.c[0].offset / this.c[0].maxOffset
     let t2 = this.c[1].offset / this.c[1].maxOffset
 
-    for(let i=0; i<3; i++){
-      this.n[i].x += (this.size/11) * (this.c[0].extend - this.c[0].retract) * (1 + (1 - t2))/2
-      this.n[i].x -= (this.size/11) * (this.c[1].extend - this.c[1].retract) * (1 + (1 - t1))/2
-    }
+    this.n[1].x += this.c[0].extend * this.c[0].velocity/3 * (1 + (1 - t2) * this.bias)
+    this.n[1].x -= this.c[0].retract * this.c[0].velocity/3 * (1 + (1 - t2) * this.bias)
+
+    this.n[1].x -= this.c[1].extend * this.c[0].velocity/3 * (1 + (1 - t1) * this.bias)
+    this.n[1].x += this.c[1].retract * this.c[0].velocity/3 * (1 + (1 - t1) * this.bias)
 
     this.n[0].x = (this.n[1].x - 4 * this.size - this.c[0].offset)
     this.n[2].x = (this.n[1].x + 4 * this.size + this.c[1].offset)
+
   }
 
-  control1(){
+  control(){
     if(ctr["1"]){
       this.c[0].extend = true
       this.c[0].retract = false
@@ -184,42 +188,6 @@ class Nanobot{
       this.c[1].extend = false
       this.c[1].retract = true
     }
-  }
-
-  control2(){
-    if(ctr["1"]){
-      this.c[0].extend = true
-      this.c[0].retract = false
-    }
-
-    if(ctr["2"]){
-      this.c[0].extend = false
-      this.c[0].retract = true
-    }
-
-    if(ctr["9"]){
-      this.c[1].extend = true
-      this.c[1].retract = false
-    }
-
-    if(ctr["0"]){
-      this.c[1].extend = false
-      this.c[1].retract = true
-    }
-  }
-
-  control3(){
-    if(ctr["1"]) this.c[0].extend = true
-    else this.c[0].extend = false
-
-    if(ctr["2"]) this.c[0].retract = true
-    else this.c[0].retract = false
-
-    if(ctr["9"]) this.c[1].extend = true
-    else this.c[1].extend = false
-
-    if(ctr["0"]) this.c[1].retract = true
-    else this.c[1].retract = false
   }
 
   draw(){
@@ -227,15 +195,13 @@ class Nanobot{
       this.c[i].draw()
     }
 
-    ctx.beginPath()
-
-    ctx.moveTo(this.n[1].x - 3 * this.size, this.y)
-    ctx.lineTo(this.n[1].x + 3 * this.size, this.y)
-
-    ctx.lineWidth *= 1.2
-    ctx.strokeStyle = "#AAAAAA"
-
-    ctx.stroke()
+    drawPNG(
+      this.n[1].x - this.size*3,
+      this.n[1].y - this.size * 0.6,
+      this.size * 6,
+      this.size * 1.2,
+      img[6]
+    )
 
     for(let i=0; i<this.n.length; i++){
       this.n[i].draw()
@@ -243,9 +209,7 @@ class Nanobot{
   }
 
   update(){
-    this.control1()
-    // if(controlScheme == 1) this.control2()
-    // if(controlScheme == 2) this.control3()
+    this.control()
 
     for(let i=0; i<this.c.length; i++){
       this.c[i].update()
