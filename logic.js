@@ -3,12 +3,12 @@
 const canvas = document.getElementById('canvas')
 var ctx = canvas.getContext("2d");
 
-var zoomSlider = document.getElementById("zoomSlider")
-var zoominess = zoomSlider.value
+var menu = {state:0}
+
+var zoom = 0
+const maxZoom = 1
 
 var screenWidth
-
-var lossAlpha = 0
 
 canvas.width = 1920;
 canvas.height = 1080;
@@ -24,18 +24,19 @@ canvas.style = "width:" + canvas.width * screenRatio + "px;" +
               "height:" + canvas.height * screenRatio + "px;"
 
 var fps = 60
-var period = fps/3
 
 const gameSize = 40
 
 var img = [
-  makeImage("background.png"),
-  makeImage("bloodCell.png"),
-  makeImage("gameBackgroundTop.png"),
-  makeImage("gameBackground.png"),
-  makeImage("node.png"),
-  makeImage("link.png"),
-  makeImage("middleRod.png")
+  makeImage("pics/background.png"),
+  makeImage("pics/bloodCell.png"),
+  makeImage("pics/gameBackgroundTop.png"),
+  makeImage("pics/gameBackground.png"),
+  makeImage("pics/node.png"),
+  makeImage("pics/link.png"),
+  makeImage("pics/middleRod.png"),
+  makeImage("pics/controls.jpeg"),
+  makeImage("pics/credits.jpeg")
 ]
 
 
@@ -76,23 +77,26 @@ window.addEventListener("keyup", function(event){
 const background = new Scene()
 
 //our main character/nanobot
-const nano = new Nanobot(centerX * 0.7, centerY * 0.8, gameSize*0.5)
+var nano = new Nanobot(centerX * 0.7, centerY * 0.75, gameSize*0.5)
 
-const clot = new Clot(centerX * 1.2, centerY, gameSize * 0.25)
+var clot = new Clot(centerX * 1.1, centerY, gameSize * 0.25)
 
-//animation() runs each frame
-function animate(){
-  if(ctr["H"]){
-    zoomSlider.value = (parseInt(zoomSlider.value) + 5)
-  }
+let mainButtons = [
+  new Button(60, 160, 300, 150, "pics/start.png", "pics/startHover.png", 1),
+  new Button(60, 350, 300, 150, "pics/controls.png", "pics/controlsHover.png", 5),
+  new Button(60, 540, 300, 150, "pics/credits.png", "pics/creditsHover.png", 4)
+]
+const mainMenu = new Menu(mainButtons)
 
-  screenWidth = Math.min(window.innerWidth, (window.innerHeight)/screenRatio)
+let subButtons = [
+  new Button(50, 50, 150, 150, "pics/back.png", "pics/backHover.png", 3)
+]
+let subMenu = new Menu(subButtons)
 
-  canvas.style = "width:" + screenWidth * 0.95 + "px;" +
-                "height:" + screenWidth * screenRatio * 0.95 + "px;"
+const game = new Game()
 
-  zoominess = zoomSlider.value/200
 
+function gameState(){
   background.drawBottom()
 
   nano.update()
@@ -103,8 +107,110 @@ function animate(){
 
   background.drawTop()
 
-  timer.update()
-  timer.checkWin()
+  game.update()
+
+  subMenu.update()
+  subMenu.draw()
+}
+
+function zoomState(){
+  background.drawBottom()
+
+  nano.draw()
+
+  clot.update()
+  clot.draw()
+
+  background.drawTop()
+
+  zoom+= 0.04;
+
+  if(zoom > maxZoom){
+    menu.state = 2
+    game.timer.seconds = game.timer.startTime
+    game.timer.time = 0
+    game.timer.stall = true
+    game.timer.win = false
+    game.alpha = 0
+  }
+}
+
+function unzoomState(){
+
+  if(zoom >= 1){
+    nano = new Nanobot(centerX * 0.7, centerY * 0.75, gameSize*0.5)
+    clot = new Clot(centerX * 1.1, centerY, gameSize * 0.25)
+  }
+
+  background.drawBottom()
+
+  nano.draw()
+
+  clot.update()
+  clot.draw()
+
+  background.drawTop()
+
+  zoom-= 0.04;
+
+  if(zoom < 0){
+    zoom = 0
+    menu.state = 0
+  }
+}
+
+function mainMenuState(){
+  background.drawBottom()
+
+  nano.draw()
+
+  clot.update()
+  clot.draw()
+
+  background.drawTop()
+
+  mainMenu.update()
+  mainMenu.draw()
+}
+
+function creditsState(){
+  drawGUI(0, 0, canvas.width, canvas.height, img[8])
+
+  subMenu.update()
+  subMenu.draw()
+}
+
+function controlsState(){
+  drawGUI(0, 0, canvas.width, canvas.height, img[7])
+
+  subMenu.update()
+  subMenu.draw()
+}
+
+var states = [
+    mainMenuState,
+    zoomState,
+    gameState,
+    unzoomState,
+    creditsState,
+    controlsState
+]
+
+function switchStates(){
+
+}
+
+canvas.addEventListener('click', function(){mainMenu.checkClick()}, false);
+canvas.addEventListener('click', function(){subMenu.checkClick()}, false);
+//animation() runs each frame
+function animate(){
+
+  screenWidth = Math.min(window.innerWidth, (window.innerHeight)/screenRatio)
+
+  canvas.style = "width:" + screenWidth * 0.98 + "px;" +
+                "height:" + screenWidth * screenRatio * 0.98 + "px;"
+
+  states[menu.state]()
 }
 
 window.onload = setInterval(animate, 1000/fps);

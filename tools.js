@@ -40,80 +40,72 @@ function compareDists(a,b) {
   return 0;
 }
 
-function youLose(){
-  lossAlpha += 0.01
-
-  ctx.fillStyle = "#FF0000"
-  ctx.globalAlpha = lossAlpha
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.globalAlpha = 1
-
-  if(lossAlpha >= 1){
-    lossAlpha = 1
-    ctx.fillStyle = "#FFFFFF"
-    ctx.font = "100px Arial";
-    ctx.fillText("You Lose", 750, 550);
-  }
-}
-
-function youWin(){
-  lossAlpha += 0.007
-
-  ctx.fillStyle = "#00BB00"
-  ctx.globalAlpha = lossAlpha
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
-  ctx.globalAlpha = 1
-
-  if(lossAlpha >= 1){
-    lossAlpha = 1
-    ctx.fillStyle = "#FFFFFF"
-    ctx.font = "100px Arial";
-    ctx.fillText("You Win", 750, 550);
-    ctx.fillText(timer.finalTime, 450, 750);
-  }
-}
-
 function getZoom(x, y, w, h){
-  let amt = zoominess
+  let amt = zoom
 
-  let x2 = x * (amt * 2 + 1)
-  let y2 = y * (amt * 2 + 1)
+  // let newX = x1 * (1 - amt) + x2 * amt
+  // let newY = y1 * (1 - amt) + y2 * amt
+  //
+  // let newW = w1 * (1 - amt) + w2 * amt
+  // let newH = h1 * (1 - amt) + h2 * amt
 
-  let w2 = w * (amt * 2 + 1)
-  let h2 = h * (amt * 2 + 1)
+  let x2 = x * (amt + 1)
+  let y2 = y * (amt + 1)
 
-  x2 -= canvas.width * amt * 0.95
-  y2 -= canvas.height * amt * 0.57
+  let w2 = w * (amt + 1)
+  let h2 = h * (amt + 1)
+
+  x2 -= canvas.width * amt * 0.475
+  y2 -= canvas.height * amt * 0.285
 
   return([x2, y2, w2, h2])
 
 }
 
+function getZoom2(x1, y1, w1, h1, x2, y2, w2, h2){
+  let amt = zoom
+
+  let newX = x1 * (1 - amt) + x2 * amt
+  let newY = y1 * (1 - amt) + y2 * amt
+
+  let newW = w1 * (1 - amt) + w2 * amt
+  let newH = h1 * (1 - amt) + h2 * amt
+
+  return([newX, newY, newW, newH])
+
+}
 function drawPNG(x, y, w, h, img){
 
   let zoom = getZoom(
-    x,
-    y,
-    w,
-    h
+    x, y, w, h
   )
 
-  if(typeof dw == undefined){
-    ctx.drawImage(
-      img,
-      zoom[0],
-      zoom[1],
-      zoom[2],
-      zoom[3]
-    );
-    return
-  }
+  //0, 0, 1920, 1080, -926, -521, 3870, 2177
+
   ctx.drawImage(
-    img,
-    zoom[0],
-    zoom[1],
-    zoom[2],
-    zoom[3]
+    img, zoom[0], zoom[1], zoom[2], zoom[3]
+  );
+
+}
+
+function drawGUI(x, y, w, h, img){
+  //0, 0, 1920, 1080, -926, -521, 3870, 2177
+
+  ctx.drawImage(
+    img, x, y, w, h
+  );
+
+}
+
+function drawPNG2(x, y, w, h, img){
+
+  let zoom = getZoom2(
+    0, 0, 5690, 3188, 1362, 466, 2820, 1570
+  )
+
+  ctx.drawImage(
+    img, zoom[0], zoom[1], zoom[2], zoom[3],
+    0, 0, canvas.width, canvas.height
   );
 
 }
@@ -138,85 +130,97 @@ function makeImage(source){
 
 var cvtHex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]
 
-var mouse = {
-  x:0,
-  y:0,
-  old:{
-    x:0,
-    y:0
-  },
-  oldOld:{
-    x:0,
-    y:0
-  },
-  dir:{
-    x:0,
-    y:0
-  }
+function newGame(){
+  
 }
-mouse.update = function(event){
-  // credit to Rafał S at:
-  //https://stackoverflow.com/questions/17130395/real-mouse-position-in-canvas?answertab=trending#tab-top
-  let rect = canvas.getBoundingClientRect();
 
-  this.oldOld = {
-    x:this.old.x,
-    y:this.old.y
-  }
 
-  this.old = {
-    x:this.x,
-    y:this.y
-  }
+class Game{
+  constructor(){
+    this.alpha = 0
 
-  this.dir = normalize(mouse)
-
-  this.x = (event.clientX - rect.left)/scr_ratio - borderW
-  this.y = (event.clientY - rect.top)/scr_ratio - borderW
-}
-window.addEventListener("mousemove", function(){
-  mouse.update(event)
-});
-
-var timer = {
-  time: 0,
-  seconds: 120,
-  stall:true,
-  win:false,
-  finalTime:""
-}
-timer.update = function(){
-  if(ctr["1"] || ctr["2"] || ctr["9"] || ctr["0"]) timer.stall = false
-
-  if(!timer.stall){
-    timer.time ++
-
-    if(timer.time%fps == 0 && timer.seconds != 0){
-      timer.seconds --
+    this.timer = {
+      time: 0,
+      startTime:60,
+      seconds: 60,
+      stall:true,
+      win:false,
+      finalTime:""
     }
   }
 
-  ctx.fillStyle = "#FFFFFF"
-  let str = "" + timer.seconds + ""
-  ctx.font = "100px Arial";
-  ctx.fillText(str, 10, 90);
-}
-timer.checkWin = function(){
-  if(nano.n[2].x >= 1280 && timer.seconds>0 && !timer.win){
-    timer.win = true
+  checkWin(){
+    if(nano.n[2].x >= 1200 && this.timer.seconds>0 && !this.timer.win){
+      this.timer.win = true
 
-    let tm = timer.time/fps
-    tm = Math.floor(tm * 100)
-    tm = tm/100
-    timer.finalTime = "Score: " + tm + " seconds"
+      let tm = this.timer.time/fps
+      tm = Math.floor(tm * 100)
+      tm = tm/100
+      this.timer.finalTime = "Score: " + tm + " seconds"
+    }
+
+    if(this.timer.win){
+      this.youWin()
+    }
+
+    if(this.timer.seconds <= 0 && !this.timer.win){
+      this.youLose()
+    }
   }
 
-  if(timer.win){
-    youWin()
+  youLose(){
+    this.alpha += 0.01
+
+    ctx.fillStyle = "#FF0000"
+    ctx.globalAlpha = this.alpha
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.globalAlpha = 1
+
+    if(this.alpha >= 1){
+      this.alpha = 1
+      ctx.fillStyle = "#FFFFFF"
+      ctx.font = "100px Arial";
+      ctx.fillText("You Lose", 750, 550);
+    }
   }
 
-  if(timer.seconds <= 0 && !timer.win){
-    youLose()
+  youWin(){
+    this.alpha += 0.007
+
+    ctx.fillStyle = "#00BB00"
+    ctx.globalAlpha = this.alpha
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.globalAlpha = 1
+
+    if(this.alpha >= 1){
+      this.alpha = 1
+      ctx.fillStyle = "#FFFFFF"
+      ctx.font = "100px Arial";
+      ctx.fillText("You Win", 750, 550);
+      ctx.fillText(this.timer.finalTime, 450, 750);
+    }
+  }
+
+  updateTimer(){
+    if(ctr["1"] || ctr["2"] || ctr["9"] || ctr["0"]) this.timer.stall = false
+
+    if(!this.timer.stall){
+      this.timer.time ++
+
+      if(this.timer.time%fps == 0 && this.timer.seconds != 0){
+        this.timer.seconds --
+      }
+    }
+
+    ctx.fillStyle = "#FFFFFF"
+    let str = "" + this.timer.seconds + ""
+    ctx.font = "100px Arial";
+    ctx.fillText(str, 220, 160);
+  }
+
+  update(){
+    this.updateTimer()
+    this.checkWin()
   }
 }
 
@@ -250,7 +254,7 @@ class Scene{
       img[2]
      )
 
-    drawPNG(
+    drawPNG2(
        this.x,
        this.y,
        this.w,
@@ -400,12 +404,11 @@ class Clot{
   }
 
   makeClot(){
-    for(let j=0; j<60; j++){
-      let start = Math.floor(2*Math.sin(Math.PI/2.001 * (30 - Math.abs(j-30) )/30)*this.size/1.2)-10
+    for(let j=0; j<16; j++){
       for(let i=0; i<10; i++){  //for(let i=start; i<20 - start; i++){
         this.cells.push(new Cell(
           this.x - (i - 5) * this.size * 2, //this.x - (i - (10 - start/10)) * this.size * 2,
-          this.y - (j - 30) * this.size * 2 + 50, //this.y - (j - 30) * this.size * 2,
+          this.y - (j - 8) * this.size * 2 - 150, //this.y - (j - 30) * this.size * 2,
           this.size
         ))
       }

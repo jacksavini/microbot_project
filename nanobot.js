@@ -1,5 +1,3 @@
-timer.seconds = 40
-
 //A Node is a singular circular section of the nanobot.
 class Node{
   constructor(x, y, size, parent){
@@ -50,7 +48,7 @@ class Connector{
     this.maxOffset = size * 2
 
     //executions per period
-    this.velocity = this.maxOffset / period
+    this.velocity = this.maxOffset / (fps/4)
 
     this.offset = 0
 
@@ -127,7 +125,7 @@ class Nanobot{
 
     this.size = size
 
-    this.bias = 0.7
+    this.bias = 0.5
 
     this.n = []
     this.c = []
