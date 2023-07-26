@@ -52,6 +52,7 @@ function getZoom(x, y, w, h){
   let x2 = x * (amt + 1)
   let y2 = y * (amt + 1)
 
+
   let w2 = w * (amt + 1)
   let h2 = h * (amt + 1)
 
@@ -62,8 +63,7 @@ function getZoom(x, y, w, h){
 
 }
 
-function getZoom2(x1, y1, w1, h1, x2, y2, w2, h2){
-  let amt = zoom
+function getZoom2(x1, y1, w1, h1, x2, y2, w2, h2, amt){
 
   let newX = x1 * (1 - amt) + x2 * amt
   let newY = y1 * (1 - amt) + y2 * amt
@@ -74,18 +74,16 @@ function getZoom2(x1, y1, w1, h1, x2, y2, w2, h2){
   return([newX, newY, newW, newH])
 
 }
+
 function drawPNG(x, y, w, h, img){
 
   let zoom = getZoom(
     x, y, w, h
   )
 
-  //0, 0, 1920, 1080, -926, -521, 3870, 2177
-
   ctx.drawImage(
     img, zoom[0], zoom[1], zoom[2], zoom[3]
   );
-
 }
 
 function drawGUI(x, y, w, h, img){
@@ -97,17 +95,50 @@ function drawGUI(x, y, w, h, img){
 
 }
 
-function drawPNG2(x, y, w, h, img){
+function drawPNG2(img, x1, y1, w1, h1, x2, y2, w2, h2, zoom){
 
-  let zoom = getZoom2(
-    0, 0, 5690, 3188, 1362, 466, 2820, 1570
+  let zoomLoc = getZoom2(
+    x1, y1, w1, h1, x2, y2, w2, h2, zoom
   )
 
   ctx.drawImage(
-    img, zoom[0], zoom[1], zoom[2], zoom[3],
+    img, zoomLoc[0], zoomLoc[1], zoomLoc[2], zoomLoc[3],
     0, 0, canvas.width, canvas.height
   );
 
+}
+
+function drawGame(x, y, w, h, img){
+  ctx.drawImage(
+    img, x, y, w, h
+  );
+}
+
+function saveGameImg(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  background.drawBottom()
+  nano.draw()
+  clot.draw()
+  background.drawTop()
+}
+
+function saveGameImg2(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  background.drawBottom()
+
+  nano.draw()
+
+  clot.draw()
+
+  background.drawTop()
+  background.drawScreen()
+  background.drawTippityTop()
+
+  bed.draw()
+
+
+  docMenu.buttons[1].draw()
+  docMenu.buttons[2].draw()
 }
 
 // Taken from this link:
@@ -130,8 +161,29 @@ function makeImage(source){
 
 var cvtHex = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]
 
-function newGame(){
-  
+function resetGame(){
+  background = new Scene()
+
+  //our main character/nanobot
+  nano = new Nanobot(centerX * 0.4, centerY * 0.8, gameSize)
+
+  nono = new Nonobot(-100, centerY * 0.7, gameSize)
+
+  clot = new Clot(centerX * 1.1, centerY, gameSize * 0.5)
+
+  game = new Game()
+}
+
+bed = {}
+
+bed.draw = function(){
+  drawPNG(
+     1100,
+     550,
+     800,
+     500,
+     img[15]
+  )
 }
 
 
@@ -147,10 +199,11 @@ class Game{
       win:false,
       finalTime:""
     }
+
   }
 
   checkWin(){
-    if(nano.n[2].x >= 1200 && this.timer.seconds>0 && !this.timer.win){
+    if(nano.n[2].x >= 1250 && this.timer.seconds>0 && !this.timer.win){
       this.timer.win = true
 
       let tm = this.timer.time/fps
@@ -169,15 +222,15 @@ class Game{
   }
 
   youLose(){
-    this.alpha += 0.01
+    this.alpha += 0.007
 
-    ctx.fillStyle = "#FF0000"
+    ctx.fillStyle = "#000000"
     ctx.globalAlpha = this.alpha
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.globalAlpha = 1
 
-    if(this.alpha >= 1){
-      this.alpha = 1
+    if(this.alpha >= 0.8){
+      this.alpha = 0.8
       ctx.fillStyle = "#FFFFFF"
       ctx.font = "100px Arial";
       ctx.fillText("You Lose", 750, 550);
@@ -187,13 +240,13 @@ class Game{
   youWin(){
     this.alpha += 0.007
 
-    ctx.fillStyle = "#00BB00"
+    ctx.fillStyle = "#000000"
     ctx.globalAlpha = this.alpha
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.globalAlpha = 1
 
-    if(this.alpha >= 1){
-      this.alpha = 1
+    if(this.alpha >= 0.8){
+      this.alpha = 0.8
       ctx.fillStyle = "#FFFFFF"
       ctx.font = "100px Arial";
       ctx.fillText("You Win", 750, 550);
@@ -202,26 +255,31 @@ class Game{
   }
 
   updateTimer(){
-    if(ctr["1"] || ctr["2"] || ctr["9"] || ctr["0"]) this.timer.stall = false
+    if(menu.state == 2 || menu.state == 8) this.timer.stall = false
 
-    if(!this.timer.stall){
+    if(!this.timer.stall && !this.timer.win){
       this.timer.time ++
 
       if(this.timer.time%fps == 0 && this.timer.seconds != 0){
         this.timer.seconds --
       }
     }
+  }
+
+  draw(){
+    let str = "" + this.timer.seconds + ""
 
     ctx.fillStyle = "#FFFFFF"
-    let str = "" + this.timer.seconds + ""
     ctx.font = "100px Arial";
-    ctx.fillText(str, 220, 160);
+    ctx.fillText(str, 1642, 200);
+    this.checkWin()
+
   }
 
   update(){
     this.updateTimer()
-    this.checkWin()
   }
+
 }
 
 class Scene{
@@ -231,45 +289,77 @@ class Scene{
 
     this.w = canvas.width
     this.h = canvas.height
+
   }
 
   drawBottom(){
     ctx.clearRect(this.x, this.y, this.w, this.h)
 
-    drawPNG(
-      this.x + canvas.width / 4.1,
-      this.y + canvas.height / 7,
-      this.w/2, this.h/2, img[3]
+    drawGame(
+      this.x,
+      this.y,
+      this.w, this.h, img[3]
     )
 
   }
 
   drawTop(){
-
-    drawPNG(
-      this.x + canvas.width / 4.1,
-      this.y + canvas.height / 7,
-      this.w/2,
-      this.h/2,
+    drawGame(
+      this.x,
+      this.y,
+      this.w,
+      this.h,
       img[2]
-     )
+    )
+  }
 
+  drawScreen(){
+    drawPNG(
+       463,
+       157,
+       950,
+       950 * 1080/1920,
+       img[9]
+    )
+  }
+
+  drawTippityTop(){
     drawPNG2(
-       this.x,
-       this.y,
-       this.w,
-       this.h,
-       img[0]
-      )
+       img[0],
+       0,
+       0,
+       5686,
+       3188,
+       1370,
+       466,
+       2820,
+       1570,
+       zoom
+    )
 
+
+
+
+
+    // drawPNG(
+    //    1577,
+    //    320,
+    //    250,
+    //    60,
+    //    img[17]
+    // )
   }
 }
 
 class Cell{
   constructor(x, y, size){
-    this.x = x + Math.random() * size/5
-    this.y = y + Math.random() * size/5
-    this.size = size + Math.random() * size/2
+    // this.x = x + Math.random() * size/5
+    // this.y = y + Math.random() * size/5
+    // this.size = size * 0.8 + Math.random() * size/2
+
+    this.x = x
+    this.y = y
+    this.size = size
 
     this.dir = {
       x:0,
@@ -327,6 +417,7 @@ class Cell{
 
     // this will trigger at each frame to diminish the cell's velocity
     this.velocity*=0.9
+
   }
 
   update(){
@@ -355,7 +446,7 @@ class Cell{
 
   draw(){
 
-    drawPNG(
+    drawGame(
       this.x - this.drawsize,
       this.y - this.drawsize,
       this.drawsize*2,
@@ -374,7 +465,7 @@ class Cell{
     )
 
     ctx.beginPath()
-    ctx.arc(zoom[0],zoom[1],zoom[2],0, 2 * Math.PI);
+    ctx.arc(this.x,this.y,this.drawsize,0, 2 * Math.PI);
     ctx.closePath()
     ctx.fill()
 
@@ -396,28 +487,25 @@ class Clot{
     this.makeClot()
 
     this.order = []
-    this.getOrder()
 
-    shuffleArray(this.cells)
+    for(let i=0; i<this.cells.length; i++){
+      this.order.push(i)
+    }
 
     this.shadeCells()
   }
 
   makeClot(){
-    for(let j=0; j<16; j++){
-      for(let i=0; i<10; i++){  //for(let i=start; i<20 - start; i++){
-        this.cells.push(new Cell(
-          this.x - (i - 5) * this.size * 2, //this.x - (i - (10 - start/10)) * this.size * 2,
-          this.y - (j - 8) * this.size * 2 - 150, //this.y - (j - 30) * this.size * 2,
-          this.size
-        ))
-      }
-    }
-  }
 
-  getOrder(){
-    for(let i=0; i<this.cells.length; i++){
-      this.order.push(i)
+    for(let i=0; i<cellInfo.length; i++){
+      this.cells.push(new Cell(
+        cellInfo[i][0], //this.x - (i - (10 - start/10)) * this.size * 2,
+        cellInfo[i][1], //this.y - (j - 30) * this.size * 2,
+        cellInfo[i][2]
+      ))
+    }
+    if(this.ready){
+      this.ready = false
     }
   }
 
@@ -444,12 +532,9 @@ class Clot{
 
   update(){
     if(!this.ready){
-      for(let i=0; i<50; i++){
-        for(let j=0; j<this.cells.length; j++){
-          this.cells[j].update()
-        }
-      }
+
       this.ready = true
+
     }
 
     this.order.sort(compareDists);
@@ -458,5 +543,112 @@ class Clot{
       let j = this.order[i]
       this.cells[j].update()
     }
+  }
+}
+
+class SpeechBubble{
+  constructor(x, y, w, h, img, lines){
+    this.x = x
+    this.y = y
+    this.w = w
+    this.h = h
+
+    this.img = img
+    this.lines = lines
+
+    this.lineIndex = 0
+
+    this.line = this.lines[this.lineIndex]
+  }
+
+  nextLine(){
+    this.lineIndex = (this.lineIndex + 1) % (this.lines.length)
+    this.lineIndex = Math.max(this.lineIndex, 1)
+    this.line = this.lines[this.lineIndex]
+  }
+
+  draw(){
+
+    drawPNG(this.x - this.w/2, this.y - this.h/2, this.w, this.h, this.img)
+
+    ctx.save();
+
+    ctx.translate( -this.x, -this.y);
+
+    ctx.rotate( Math.PI / 17 );
+
+    ctx.translate( this.x , this.y);
+
+
+    ctx.textAlign = "center";
+
+    ctx.fillStyle = "#000000"
+    ctx.font = "25px Arial";
+
+    ctx.fillText(this.line[0], this.x + 90, this.y - 200, this.w - 60);
+    ctx.fillText(this.line[1], this.x + 90, this.y - 150, this.w - 60);
+
+    ctx.restore();
+
+  }
+}
+
+class Monitor{
+  constructor(){
+    this.left=1575
+    this.top= 325
+    this.w = 1829 - this.left
+    this.h = 390 - this.top
+
+    this.img = img[17]
+
+    this.x = 0
+    this.y = 0
+
+    this.poleAlpha = 1
+
+  }
+
+  update(){
+    this.x += 10
+
+    if(this.x > this.img.width/2){
+      this.x -= this.img.width/2
+    }
+  }
+
+  drawPole(){
+
+    ctx.fillStyle = "#BBBBBB"
+
+    ctx.fillRect(
+      1684,
+      350,
+      40,
+      500
+     )
+  }
+
+  draw(){
+    ctx.drawImage(
+      img[16],
+      1550,
+      250 - (zoom * 200),
+      300,
+      500
+    )
+
+    ctx.drawImage(
+      this.img,
+      this.x,
+      0,
+      this.img.width/2,
+      this.img.height,
+      this.left,
+      this.top - (zoom * 200),
+      this.w,
+      this.h
+    )
+
   }
 }

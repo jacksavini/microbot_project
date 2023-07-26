@@ -9,15 +9,63 @@
  </head>
 
  <body>
-   <h1>Rules: Move the Bot, Break the Clot!</h1>
-   <h3 id="tutorial">Press 1 to control the left arm, 2 to control the right arm</h3>
+
+   <h1> Microbots: how do they work?</h1>
+
+   <div id="blurb">
+     <p>
+       Micro-robots capable of swimming like micro-organisms hold tremendous
+       potential for biomedical applications such as drug delivery and
+       micro-surgery. However, swimming under the microscope poses significant
+       challenges due to the stringent constraints imposed by fluid dynamics at
+       small scales. Common swimming strategies used at larger scales become
+       largely ineffective. In recent decades, scientists and engineers across
+       different disciplines have come together to develop a range of
+       micro-swimmers capable of navigating the microscopic world.
+     </p>
+
+     <p>
+       To enhance public understanding, we have created an educational game that
+       allows players to gain virtual hands-on experience with the exciting
+       applications of micro-swimmers in an entertaining manner. The game was
+       developed by an interdisciplinary team of students from Santa Clara
+       University, including students from mechanical engineering, computer
+       science, and digital arts. Our goal is to provide an enjoyable experience
+       while showcasing the possibilities offered by micro-swimmers. If you have
+       any questions about this outreach effort, please feel free to email us at
+       opak@scu.edu. We hope you enjoy playing the game!
+     </p>
+
+     <p>
+       The microswimmer in the game is based on the pioneering work by Najafi and
+       Golestanian (Physical Review E, 69, 062901, 2004). Support by the National
+       Science Foundation (Grant numbers 1830958 and 1931292) is gratefully
+       acknowledged.
+     </p>
+   </div>
+
+   <br>
+
    <canvas id="canvas"></canvas>
 
+   <h2>How to Play: </h2>
+   <h2>1) Press "1" and "2" on your keyboard to control the microbot</h2>
+
+   <canvas id="canvas2"></canvas>
+   <img src="pics/tutorial.png" id="tut">
+
+   <h2>2) Find a way to move the bot forward</h2>
+
+   <h2>3) Break the blood clot to win</h2>
+
+   <script src="cellInfo.js"></script>
+   <script src="states.js"></script>
    <script src="menu.js"></script>
    <script src="logic.js"></script>
 
-   <br><br><br><br><br><br><br><br><br><br>
+   <script src="botDemoCanvas.js"></script>
 
+   <br><br><br><br><br><br><br><br><br><br>
  </body>
 
 </html>

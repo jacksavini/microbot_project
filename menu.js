@@ -37,9 +37,25 @@ class Button{
   }
 
   checkHover(){
-    if(mouse.x > this.x && mouse.x < this.x + this.w &&
-       mouse.y > this.y && mouse.y < this.y + this.h)
+
+    // let coords = getZoom(this.x, this.y, this.w, this.h)
+    //
+    // let nx = coords[0]
+    // let ny = coords[1]
+    // let nw = coords[2]
+    // let nh = coords[3]
+
+    let coords = [this.x, this.y, this.w, this.h]
+
+    let nx = coords[0]
+    let ny = coords[1]
+    let nw = coords[2]
+    let nh = coords[3]
+
+    if(mouse.x > nx && mouse.x < nx + nw &&
+       mouse.y > ny && mouse.y < ny + nh)
     {
+
       return true
     }
     return false
@@ -68,10 +84,7 @@ class Button{
 class Menu{
   constructor(buttons){
     this.buttons = buttons
-
-    this.state = 0
   }
-
 
   draw(){
     for(let b in this.buttons){
@@ -82,13 +95,11 @@ class Menu{
   checkClick(){
 
     for(let b in this.buttons){
-
       if(this.buttons[b].hover){
         this.buttons[b].click()
       }
     }
   }
-
 
   update(){
     for(let b in this.buttons){
