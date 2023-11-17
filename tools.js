@@ -153,6 +153,8 @@ function shuffleArray(array) {
     }
 }
 
+
+
 function makeImage(source){
   let img = new Image();
   img.src = source;
@@ -172,18 +174,6 @@ function resetGame(){
   clot = new Clot(centerX * 1.1, centerY, gameSize * 0.5)
 
   game = new Game()
-}
-
-bed = {}
-
-bed.draw = function(){
-  drawPNG(
-     1100,
-     550,
-     800,
-     500,
-     img[15]
-  )
 }
 
 
@@ -651,4 +641,16 @@ class Monitor{
     )
 
   }
+}
+
+bed = {}
+
+bed.draw = function(){
+  drawPNG(
+     1100,
+     550,
+     800,
+     500,
+     img[15]
+  )
 }

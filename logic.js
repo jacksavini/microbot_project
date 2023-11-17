@@ -12,6 +12,7 @@ var zoom = 0
 const maxZoom = 1
 
 var screenWidth
+var screenRatio = 0.2
 
 var creditsAlpha = 0
 
@@ -207,7 +208,6 @@ function animate(){
     menu.start = false
   }
 
-  screenWidth = Math.min(window.innerWidth, (window.innerHeight)/screenRatio)
   if (ctr["P"]){getCells(cellInfo)}
 
 }
